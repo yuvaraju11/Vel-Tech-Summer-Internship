@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Live AQI — AQI SmartCity</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-logo"><span class="dot"></span>AQI<span class="accent">SmartCity</span></div>
+    <button class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+    <div class="nav-links" id="navLinks">
+      <a href="{{ url_for('home') }}">Home</a>
+      <a href="{{ url_for('live') }}" class="active">Live AQI</a>
+      <a href="{{ url_for('forecast') }}">Forecast</a>
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('history') }}">History</a>
+      <a href="{{ url_for('about') }}">About</a>
+    </div>
+  </nav>
+
+  <div class="page">
+
+    <div class="eyebrow"><span class="pulse-dot"></span>{{ current_month }} · All States</div>
+    <h1 class="page-title">Live AQI Across India</h1>
+    <p class="page-subtitle">
+      Each state below shows a real, model-based AQI estimate for its most-monitored area
+      ({{ current_month }}), using the trained Random Forest model and that area's actual
+      historical range — so every state shows its own distinct value.
+    </p>
+
+    <!-- Search any city (real-time, optional) -->
+    <div class="card" style="max-width:640px; margin-bottom:2rem;">
+      <h3 style="font-family:'Sora',sans-serif; font-size:0.95rem; margin-bottom:0.8rem;">Search any city (real-time)</h3>
+      <div class="live-search">
+        <input type="text" id="cityInput" placeholder="e.g. Delhi, Chennai, Mumbai" onkeydown="if(event.key==='Enter') searchAQI()"/>
+        <button class="btn btn-primary" onclick="searchAQI()">Search</button>
+      </div>
+      <div id="liveMsg" class="live-msg"></div>
+      <div id="liveResult" class="live-result">
+        <div class="result-meta" style="margin-top:1rem;">
+          <div><span style="font-weight:400; color:var(--muted)">City</span> <span id="metaCity">—</span></div>
+          <div><span style="font-weight:400; color:var(--muted)">AQI</span> <span id="metaAqi">—</span></div>
+          <div><span style="font-weight:400; color:var(--muted)">Category</span> <span id="metaStatus">—</span></div>
+          <div><span style="font-weight:400; color:var(--muted)">Dominant Pollutant</span> <span id="metaPollutant">—</span></div>
+          <div><span style="font-weight:400; color:var(--muted)">Updated</span> <span id="metaUpdated">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- All States Grid -->
+    <div class="eyebrow">{{ results|length }} States</div>
+    <h2 class="page-title">State-wise AQI ({{ current_month }})</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>State</th>
+            <th>Reference Area</th>
+            <th>AQI</th>
+            <th>Category</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in results %}
+          <tr>
+            <td style="color:var(--muted)">{{ loop.index }}</td>
+            <td><strong>{{ r.state }}</strong></td>
+            <td style="color:var(--muted)">{{ r.area }}</td>
+            <td><strong>{{ r.aqi }}</strong></td>
+            <td><span class="pill badge-{{ r.status_class }}">{{ r.status }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>© 2026 AQI SmartCity — Innolift Ventures Internship, Track 2</div>
+      <div class="footer-links">
+        <a href="{{ url_for('forecast') }}">Forecast</a>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('about') }}">About</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    async function searchAQI() {
+      const city = document.getElementById("cityInput").value.trim();
+      const msg = document.getElementById("liveMsg");
+      const result = document.getElementById("liveResult");
+
+      if (!city) { msg.textContent = "Please enter a city name."; msg.className = "live-msg error-msg"; return; }
+
+      msg.innerHTML = '<span class="spinner"></span> Fetching live data...';
+      msg.className = "live-msg";
+      result.classList.remove("show");
+
+      try {
+        const res = await fetch(`/api/live-aqi?city=${encodeURIComponent(city)}`);
+        const data = await res.json();
+
+        if (!data.ok) {
+          msg.textContent = data.error;
+          msg.className = "live-msg error-msg";
+          return;
+        }
+
+        msg.textContent = "";
+        document.getElementById("metaCity").textContent = data.city;
+        document.getElementById("metaAqi").textContent = data.aqi;
+        document.getElementById("metaStatus").textContent = data.status;
+        document.getElementById("metaPollutant").textContent = (data.dominant_pollutant || "N/A").toUpperCase();
+        document.getElementById("metaUpdated").textContent = data.updated;
+        result.classList.add("show");
+      } catch (err) {
+        msg.textContent = "Something went wrong. Please try again.";
+        msg.className = "live-msg error-msg";
+      }
+    }
+  </script>
+
+</body>
+</html>

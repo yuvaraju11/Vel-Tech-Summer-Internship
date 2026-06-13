@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>History — AQI SmartCity</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-logo"><span class="dot"></span>AQI<span class="accent">SmartCity</span></div>
+    <button class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+    <div class="nav-links" id="navLinks">
+      <a href="{{ url_for('home') }}">Home</a>
+      <a href="{{ url_for('live') }}">Live AQI</a>
+      <a href="{{ url_for('forecast') }}">Forecast</a>
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('history') }}" class="active">History</a>
+      <a href="{{ url_for('about') }}">About</a>
+    </div>
+  </nav>
+
+  <div class="page">
+
+    <div class="eyebrow">Records</div>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.4rem;">
+      <h1 class="page-title" style="margin-bottom:0;">Forecast History</h1>
+      <a href="{{ url_for('forecast') }}" class="btn btn-primary">+ New Forecast</a>
+    </div>
+    <p class="page-subtitle">Last {{ predictions|length }} forecast(s), most recent first.</p>
+
+    <div class="table-wrap">
+      {% if predictions %}
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>State</th>
+            <th>Area</th>
+            <th>Month</th>
+            <th>Stations</th>
+            <th>AQI</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in predictions %}
+          {% set status_class = p[6].lower().replace(' ', '-') %}
+          <tr>
+            <td style="color:var(--muted)">{{ loop.index }}</td>
+            <td><strong>{{ p[1] }}</strong></td>
+            <td>{{ p[2] }}</td>
+            <td>{{ p[3] }}</td>
+            <td>{{ p[4] }}</td>
+            <td><strong>{{ p[5] }}</strong></td>
+            <td><span class="pill badge-{{ status_class }}">{{ p[6] }}</span></td>
+            <td style="color:var(--muted)">{{ p[7] }}</td>
+            <td><a href="/delete/{{ p[0] }}" class="btn btn-danger" style="font-size:0.74rem; padding:0.3rem 0.8rem;">Delete</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty">
+        <div class="icon">🌫️</div>
+        No forecasts yet. <a href="{{ url_for('forecast') }}" style="color:var(--sky);">Generate your first forecast</a>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>© 2026 AQI SmartCity — Innolift Ventures Internship, Track 2</div>
+      <div class="footer-links">
+        <a href="{{ url_for('live') }}">Live AQI</a>
+        <a href="{{ url_for('forecast') }}">Forecast</a>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

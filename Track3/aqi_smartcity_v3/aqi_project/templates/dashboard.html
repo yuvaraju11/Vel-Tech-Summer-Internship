@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — AQI SmartCity</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-logo"><span class="dot"></span>AQI<span class="accent">SmartCity</span></div>
+    <button class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+    <div class="nav-links" id="navLinks">
+      <a href="{{ url_for('home') }}">Home</a>
+      <a href="{{ url_for('live') }}">Live AQI</a>
+      <a href="{{ url_for('forecast') }}">Forecast</a>
+      <a href="{{ url_for('dashboard') }}" class="active">Dashboard</a>
+      <a href="{{ url_for('history') }}">History</a>
+      <a href="{{ url_for('about') }}">About</a>
+    </div>
+  </nav>
+
+  <div class="page">
+
+    <div class="eyebrow">Insights</div>
+    <h1 class="page-title">Dataset Dashboard</h1>
+    <p class="page-subtitle">Patterns from 235,785 AQI monitoring records across India.</p>
+
+    <div class="dash-grid">
+
+      <div class="chart-card">
+        <h3>Monthly National Average AQI</h3>
+        {% set max_val = monthly_avg.values()|list|max %}
+        {% for m in range(1,13) %}
+        <div class="bar-row">
+          <div class="bar-label">{{ month_names[m] }}</div>
+          <div class="bar-track"><div class="bar-fill" style="width: {{ (monthly_avg.get(m,0) / max_val * 100)|round(1) }}%;"></div></div>
+          <div class="bar-value">{{ monthly_avg.get(m, '—') }}</div>
+        </div>
+        {% endfor %}
+        <p style="color:var(--muted); font-size:0.8rem; margin-top:0.8rem;">
+          Winter months typically show higher AQI (more pollution) due to lower wind speeds and temperature inversion.
+        </p>
+      </div>
+
+      <div class="chart-card">
+        <h3>Top 10 States by Average AQI</h3>
+        {% set max_state = state_avg.values()|list|max %}
+        {% for st, val in state_avg.items() %}
+        <div class="bar-row">
+          <div class="bar-label">{{ st }}</div>
+          <div class="bar-track"><div class="bar-fill" style="width: {{ (val / max_state * 100)|round(1) }}%;"></div></div>
+          <div class="bar-value">{{ val }}</div>
+        </div>
+        {% endfor %}
+        <p style="color:var(--muted); font-size:0.8rem; margin-top:0.8rem;">
+          Higher average AQI generally reflects more industrial activity, vehicular density, or geographic factors trapping pollutants.
+        </p>
+      </div>
+
+    </div>
+
+    <div class="chart-card">
+      <h3>About these numbers</h3>
+      <p style="color:var(--muted); font-size:0.88rem;">
+        These statistics are computed directly from the cleaned AQI dataset (2025) covering
+        32 states and 291 monitoring areas. They are used both to display dataset insights here,
+        and to set realistic bounds on the Forecast page so predictions stay within the
+        historically observed range for each area.
+      </p>
+    </div>
+
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>© 2026 AQI SmartCity — Innolift Ventures Internship, Track 2</div>
+      <div class="footer-links">
+        <a href="{{ url_for('live') }}">Live AQI</a>
+        <a href="{{ url_for('forecast') }}">Forecast</a>
+        <a href="{{ url_for('about') }}">About</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

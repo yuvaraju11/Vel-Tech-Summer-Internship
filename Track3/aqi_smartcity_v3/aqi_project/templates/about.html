@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About — AQI SmartCity</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-logo"><span class="dot"></span>AQI<span class="accent">SmartCity</span></div>
+    <button class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+    <div class="nav-links" id="navLinks">
+      <a href="{{ url_for('home') }}">Home</a>
+      <a href="{{ url_for('live') }}">Live AQI</a>
+      <a href="{{ url_for('forecast') }}">Forecast</a>
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('history') }}">History</a>
+      <a href="{{ url_for('about') }}" class="active">About</a>
+    </div>
+  </nav>
+
+  <div class="page">
+
+    <div class="eyebrow">Project Information</div>
+    <h1 class="page-title">About AQI SmartCity</h1>
+    <p class="page-subtitle">
+      A real-time and predictive Air Quality Index platform built for the
+      Innolift Ventures Internship — Track 2.
+    </p>
+
+    <div class="card" style="margin-bottom:1.2rem;">
+      <h2 style="font-family:'Sora',sans-serif; font-size:1.05rem; margin-bottom:0.8rem; color:var(--sky);">Overview</h2>
+      <p style="color:var(--muted); font-size:0.9rem;">
+        AQI SmartCity combines two sources of air quality information. The
+        <strong>Live AQI</strong> page fetches real-time readings from public monitoring
+        stations worldwide. The <strong>Forecast</strong> page uses a Random Forest model
+        trained on historical Indian AQI data to estimate AQI for a chosen state, area, and
+        month — with results bounded by the actual historical range for that location so
+        forecasts stay realistic.
+      </p>
+    </div>
+
+    <div class="card" style="margin-bottom:1.2rem;">
+      <h2 style="font-family:'Sora',sans-serif; font-size:1.05rem; margin-bottom:1rem; color:var(--sky);">Features</h2>
+      <div class="tag-row">
+        <span class="tag">Real-Time AQI Lookup</span>
+        <span class="tag">ML Forecast Engine</span>
+        <span class="tag">Dataset Dashboard</span>
+        <span class="tag">Forecast History</span>
+        <span class="tag">Mobile Responsive</span>
+        <span class="tag">CPCB Health Advisories</span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1.2rem;">
+      <h2 style="font-family:'Sora',sans-serif; font-size:1.05rem; margin-bottom:1rem; color:var(--sky);">Tech Stack</h2>
+      <div class="tag-row">
+        <span class="tag">Python 3</span>
+        <span class="tag">Flask</span>
+        <span class="tag">scikit-learn</span>
+        <span class="tag">Random Forest Regressor</span>
+        <span class="tag">SQLite3</span>
+        <span class="tag">Pandas</span>
+        <span class="tag">WAQI Real-Time API</span>
+        <span class="tag">HTML5 / CSS3 / JS</span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1.5rem;">
+      <h2 style="font-family:'Sora',sans-serif; font-size:1.05rem; margin-bottom:1rem; color:var(--sky);">Dataset</h2>
+      <div class="result-meta">
+        <div><span style="font-weight:400; color:var(--muted)">Source</span> <span>Real AQI monitoring data — India (2025)</span></div>
+        <div><span style="font-weight:400; color:var(--muted)">Records</span> <span>235,785</span></div>
+        <div><span style="font-weight:400; color:var(--muted)">States Covered</span> <span>32</span></div>
+        <div><span style="font-weight:400; color:var(--muted)">Areas Covered</span> <span>291</span></div>
+        <div><span style="font-weight:400; color:var(--muted)">Model</span> <span>Random Forest Regressor (80 trees)</span></div>
+      </div>
+    </div>
+
+    <div class="eyebrow">Team</div>
+    <h2 class="page-title" style="font-size:1.3rem;">Project Team</h2>
+    <div class="about-grid">
+      <div class="team-card">
+        <div class="avatar">Y</div>
+        <div class="team-info"><h4>Yuvaraju</h4><p>AI & Data Science — 2nd Year</p></div>
+      </div>
+      <div class="team-card">
+        <div class="avatar">S</div>
+        <div class="team-info"><h4>Shalini</h4><p>AI & Data Science — 2nd Year</p></div>
+      </div>
+      <div class="team-card">
+        <div class="avatar">A</div>
+        <div class="team-info"><h4>Akshara</h4><p>AI & Data Science — 2nd Year</p></div>
+      </div>
+      <div class="team-card">
+        <div class="avatar">D</div>
+        <div class="team-info"><h4>Dr. Deepa</h4><p>Project Supervisor</p></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1.5rem; text-align:center;">
+      <p style="color:var(--muted); font-size:0.875rem;">
+        Built for <strong style="color:var(--sky);">Innolift Ventures Internship 2025</strong> — Track 2
+      </p>
+    </div>
+
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>© 2026 AQI SmartCity — Innolift Ventures Internship, Track 2</div>
+      <div class="footer-links">
+        <a href="{{ url_for('live') }}">Live AQI</a>
+        <a href="{{ url_for('forecast') }}">Forecast</a>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
