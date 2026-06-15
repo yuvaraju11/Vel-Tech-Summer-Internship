@@ -1,0 +1,1015 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Live AQI Monitor — India{% endblock %}
+
+{% block content %}
+<div class="live-container">
+
+    <!-- Top Controls Bar -->
+    <div class="live-controls-card">
+        <div class="search-section-wrapper">
+            <div class="search-box-container">
+                <i class="fa-solid fa-magnifying-glass search-input-icon"></i>
+                <input type="text" id="live-search-input" placeholder="Search any Indian city (Delhi, Mumbai, Hyderabad…)">
+                <button id="live-search-btn" class="btn btn-primary">Search</button>
+            </div>
+        </div>
+        <div class="live-meta-info">
+            <span class="live-india-badge"><i class="fa-solid fa-flag"></i> India Live AQI Dashboard</span>
+            <span id="last-refresh-time" class="last-refresh"><i class="fa-regular fa-clock"></i> Auto-loading…</span>
+        </div>
+        <div class="api-token-wrapper">
+            <details class="token-settings-dropdown">
+                <summary class="token-settings-summary">
+                    <i class="fa-solid fa-gear"></i> API Settings
+                </summary>
+                <div class="token-settings-content">
+                    <label for="waqi-token">WAQI API Token (Optional)</label>
+                    <div class="token-input-group">
+                        <input type="password" id="waqi-token" placeholder="Get free token at aqicn.org/data-platform/token/">
+                        <button id="save-token-btn" class="btn-save-token">Save</button>
+                    </div>
+                    <small class="token-help">
+                        The app uses the WAQI public API. For higher rate limits and more stations,
+                        get a free token from <a href="https://aqicn.org/data-platform/token/" target="_blank" rel="noopener">aqicn.org</a> and save it here.
+                    </small>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <!-- Selected City Detail Panel (initially hidden) -->
+    <div id="city-detail-panel" class="city-detail-panel" style="display:none;">
+        <div class="live-grid">
+            <!-- Main AQI gauge card -->
+            <div class="live-card main-stats-card">
+                <div class="live-card-header">
+                    <h3><i class="fa-solid fa-circle-dot animate-pulse"></i> Real-time Monitoring Station</h3>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <span class="live-badge" id="live-station-time">Updated: --:--</span>
+                        <button id="close-detail-btn" class="btn-close-detail" title="Close"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </div>
+                <div class="live-station-info">
+                    <h2 id="live-station-name">Loading…</h2>
+                    <p id="live-station-city" class="text-muted">Fetching station data…</p>
+                </div>
+                <div class="live-gauge-section">
+                    <div class="aqi-gauge-wrapper">
+                        <div class="aqi-gauge">
+                            <svg class="gauge-svg" viewBox="0 0 200 200">
+                                <circle class="gauge-track" cx="100" cy="100" r="80" stroke-width="16" fill="transparent" />
+                                <circle id="live-gauge-fill" class="gauge-fill" cx="100" cy="100" r="80" stroke-width="16" fill="transparent" stroke-dasharray="502" stroke-dashoffset="502" />
+                            </svg>
+                            <div class="gauge-center">
+                                <span class="gauge-value" id="live-aqi-value">--</span>
+                                <span class="gauge-label">AQI</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="status-summary">
+                        <div id="live-status-badge" class="status-badge aqi-good">--</div>
+                        <p class="live-device-status"><i class="fa-solid fa-shield-halved text-success"></i> Verified Official Source</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather + Pollutants -->
+            <div class="live-details-column">
+                <div class="live-card">
+                    <div class="live-card-header">
+                        <h3><i class="fa-solid fa-cloud-sun"></i> Weather</h3>
+                    </div>
+                    <div class="weather-grid">
+                        <div class="weather-card-item">
+                            <i class="fa-solid fa-temperature-half text-danger"></i>
+                            <span class="weather-label">Temperature</span>
+                            <span class="weather-val" id="live-weather-temp">-- °C</span>
+                        </div>
+                        <div class="weather-card-item">
+                            <i class="fa-solid fa-droplet text-info"></i>
+                            <span class="weather-label">Humidity</span>
+                            <span class="weather-val" id="live-weather-humidity">-- %</span>
+                        </div>
+                        <div class="weather-card-item">
+                            <i class="fa-solid fa-wind text-secondary"></i>
+                            <span class="weather-label">Wind</span>
+                            <span class="weather-val" id="live-weather-wind">-- m/s</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="live-card">
+                    <div class="live-card-header">
+                        <h3><i class="fa-solid fa-flask-vial"></i> Pollutants</h3>
+                    </div>
+                    <div class="pollutants-grid">
+                        <div class="pollutant-card-item"><span class="pol-name">PM<sub>2.5</sub></span><span class="pol-value" id="live-pol-pm25">--</span><span class="pol-unit">µg/m³</span></div>
+                        <div class="pollutant-card-item"><span class="pol-name">PM<sub>10</sub></span><span class="pol-value" id="live-pol-pm10">--</span><span class="pol-unit">µg/m³</span></div>
+                        <div class="pollutant-card-item"><span class="pol-name">NO<sub>2</sub></span><span class="pol-value" id="live-pol-no2">--</span><span class="pol-unit">ppb</span></div>
+                        <div class="pollutant-card-item"><span class="pol-name">O<sub>3</sub></span><span class="pol-value" id="live-pol-o3">--</span><span class="pol-unit">ppb</span></div>
+                        <div class="pollutant-card-item"><span class="pol-name">CO</span><span class="pol-value" id="live-pol-co">--</span><span class="pol-unit">ppm</span></div>
+                        <div class="pollutant-card-item"><span class="pol-name">SO<sub>2</sub></span><span class="pol-value" id="live-pol-so2">--</span><span class="pol-unit">ppb</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health Advisory -->
+            <div class="live-card full-width-card">
+                <div class="live-card-header">
+                    <h3><i class="fa-solid fa-heart-pulse"></i> Health Advisory</h3>
+                </div>
+                <div class="live-advisory-wrapper">
+                    <p id="live-advisory-main">Load a city to see advisory.</p>
+                    <div class="advisory-bullets-grid">
+                        <div class="advisory-bullet-item">
+                            <i class="fa-solid fa-lungs text-primary"></i>
+                            <div>
+                                <strong>Respiratory Precautions</strong>
+                                <p id="live-adv-respiratory">--</p>
+                            </div>
+                        </div>
+                        <div class="advisory-bullet-item">
+                            <i class="fa-solid fa-shield-heart text-danger"></i>
+                            <div>
+                                <strong>Cardiovascular / Sensitive Groups</strong>
+                                <p id="live-adv-cardio">--</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All India States / Cities Grid -->
+    <div class="india-grid-section">
+        <div class="section-header-bar">
+            <h2><i class="fa-solid fa-map-location-dot"></i> Live AQI — All Indian States & Major Cities</h2>
+            <div class="legend-row">
+                <span class="legend-item"><span class="legend-dot" style="background:#2ecc71"></span>Good (0–50)</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#27ae60"></span>Satisfactory (51–100)</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#f1c40f"></span>Moderate (101–200)</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#e67e22"></span>Poor (201–300)</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#e74c3c"></span>Very Poor (301–400)</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#800000"></span>Severe (400+)</span>
+            </div>
+        </div>
+
+        <div id="india-cities-loading" class="india-loading-state">
+            <div class="loader-spinner"></div>
+            <p>Fetching live AQI data for Indian cities…</p>
+        </div>
+
+        <div id="india-cities-grid" class="india-cities-grid" style="display:none;"></div>
+    </div>
+
+</div>
+
+<script>
+const INDIA_CITIES = [
+    // North India
+    { city: 'Delhi', state: 'Delhi', query: 'delhi' },
+    { city: 'Noida', state: 'Uttar Pradesh', query: 'noida' },
+    { city: 'Lucknow', state: 'Uttar Pradesh', query: 'lucknow' },
+    { city: 'Varanasi', state: 'Uttar Pradesh', query: 'varanasi' },
+    { city: 'Kanpur', state: 'Uttar Pradesh', query: 'kanpur' },
+    { city: 'Agra', state: 'Uttar Pradesh', query: 'agra' },
+    { city: 'Jaipur', state: 'Rajasthan', query: 'jaipur' },
+    { city: 'Jodhpur', state: 'Rajasthan', query: 'jodhpur' },
+    { city: 'Chandigarh', state: 'Punjab/Haryana', query: 'chandigarh' },
+    { city: 'Ludhiana', state: 'Punjab', query: 'ludhiana' },
+    { city: 'Amritsar', state: 'Punjab', query: 'amritsar' },
+    { city: 'Gurugram', state: 'Haryana', query: 'gurugram' },
+    { city: 'Faridabad', state: 'Haryana', query: 'faridabad' },
+    { city: 'Dehradun', state: 'Uttarakhand', query: 'dehradun' },
+    { city: 'Shimla', state: 'Himachal Pradesh', query: 'shimla' },
+    { city: 'Srinagar', state: 'J&K', query: 'srinagar' },
+    // West India
+    { city: 'Mumbai', state: 'Maharashtra', query: 'mumbai' },
+    { city: 'Pune', state: 'Maharashtra', query: 'pune' },
+    { city: 'Nagpur', state: 'Maharashtra', query: 'nagpur' },
+    { city: 'Aurangabad', state: 'Maharashtra', query: 'aurangabad' },
+    { city: 'Ahmedabad', state: 'Gujarat', query: 'ahmedabad' },
+    { city: 'Surat', state: 'Gujarat', query: 'surat' },
+    { city: 'Vadodara', state: 'Gujarat', query: 'vadodara' },
+    { city: 'Rajkot', state: 'Gujarat', query: 'rajkot' },
+    { city: 'Bhopal', state: 'Madhya Pradesh', query: 'bhopal' },
+    { city: 'Indore', state: 'Madhya Pradesh', query: 'indore' },
+    { city: 'Gwalior', state: 'Madhya Pradesh', query: 'gwalior' },
+    // South India
+    { city: 'Bengaluru', state: 'Karnataka', query: 'bangalore' },
+    { city: 'Mysuru', state: 'Karnataka', query: 'mysore' },
+    { city: 'Hyderabad', state: 'Telangana', query: 'hyderabad' },
+    { city: 'Chennai', state: 'Tamil Nadu', query: 'chennai' },
+    { city: 'Coimbatore', state: 'Tamil Nadu', query: 'coimbatore' },
+    { city: 'Madurai', state: 'Tamil Nadu', query: 'madurai' },
+    { city: 'Kochi', state: 'Kerala', query: 'kochi' },
+    { city: 'Thiruvananthapuram', state: 'Kerala', query: 'thiruvananthapuram' },
+    { city: 'Visakhapatnam', state: 'Andhra Pradesh', query: 'visakhapatnam' },
+    { city: 'Vijayawada', state: 'Andhra Pradesh', query: 'vijayawada' },
+    { city: 'Puducherry', state: 'Puducherry', query: 'puducherry' },
+    // East India
+    { city: 'Kolkata', state: 'West Bengal', query: 'kolkata' },
+    { city: 'Patna', state: 'Bihar', query: 'patna' },
+    { city: 'Bhubaneswar', state: 'Odisha', query: 'bhubaneswar' },
+    { city: 'Raipur', state: 'Chhattisgarh', query: 'raipur' },
+    { city: 'Ranchi', state: 'Jharkhand', query: 'ranchi' },
+    { city: 'Guwahati', state: 'Assam', query: 'guwahati' },
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+    const tokenInput = document.getElementById('waqi-token');
+    const saveTokenBtn = document.getElementById('save-token-btn');
+    const searchInput = document.getElementById('live-search-input');
+    const searchBtn = document.getElementById('live-search-btn');
+    const detailPanel = document.getElementById('city-detail-panel');
+    const closeDetailBtn = document.getElementById('close-detail-btn');
+
+    // Load saved token
+    const savedToken = localStorage.getItem('waqi_token');
+    if (savedToken) tokenInput.value = savedToken;
+
+    saveTokenBtn.addEventListener('click', () => {
+        const token = tokenInput.value.trim();
+        if (token) {
+            localStorage.setItem('waqi_token', token);
+            showNotification('API Token saved! Refreshing data…', 'success');
+        } else {
+            localStorage.removeItem('waqi_token');
+            showNotification('Token cleared. Using default feed.', 'info');
+        }
+        loadAllIndiaCities();
+    });
+
+    searchBtn.addEventListener('click', () => {
+        const q = searchInput.value.trim();
+        if (q) loadCityDetail(q, q);
+    });
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const q = searchInput.value.trim();
+            if (q) loadCityDetail(q, q);
+        }
+    });
+
+    closeDetailBtn.addEventListener('click', () => {
+        detailPanel.style.display = 'none';
+    });
+
+    // Load the India grid on page open
+    loadAllIndiaCities();
+});
+
+function getToken() {
+    return localStorage.getItem('waqi_token') || 'demo';
+}
+
+// Load detail panel for a specific city
+async function loadCityDetail(query, displayName) {
+    const token = getToken();
+    const panel = document.getElementById('city-detail-panel');
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    document.getElementById('live-station-name').textContent = 'Connecting…';
+    document.getElementById('live-station-city').textContent = 'Fetching live data…';
+    document.getElementById('live-aqi-value').textContent = '--';
+    document.getElementById('live-gauge-fill').style.strokeDashoffset = 502;
+
+    try {
+        // Use search API for better India coverage
+        const res = await fetch(`https://api.waqi.info/search/?keyword=${encodeURIComponent(query + ' India')}&token=${token}`);
+        const json = await res.json();
+
+        if (json.status === 'ok' && json.data && json.data.length > 0) {
+            // Find closest match for India
+            const indiaStation = json.data.find(s =>
+                s.station.country === 'IN' ||
+                s.station.name.toLowerCase().includes(query.toLowerCase())
+            ) || json.data[0];
+
+            // Now fetch full data for this station's UID
+            const uid = indiaStation.uid;
+            const detailRes = await fetch(`https://api.waqi.info/feed/@${uid}/?token=${token}`);
+            const detailJson = await detailRes.json();
+
+            if (detailJson.status === 'ok') {
+                renderDetailPanel(detailJson.data);
+                return;
+            }
+        }
+
+        // Fallback: direct city feed
+        const directRes = await fetch(`https://api.waqi.info/feed/${encodeURIComponent(query)}/?token=${token}`);
+        const directJson = await directRes.json();
+        if (directJson.status === 'ok') {
+            renderDetailPanel(directJson.data);
+        } else {
+            document.getElementById('live-station-name').textContent = 'No data found';
+            document.getElementById('live-station-city').textContent = `Could not find AQI data for "${displayName}". Try a different spelling.`;
+        }
+    } catch (err) {
+        console.error('API Error:', err);
+        document.getElementById('live-station-name').textContent = 'Network Error';
+        document.getElementById('live-station-city').textContent = 'Failed to connect. Check internet connection.';
+    }
+}
+
+function renderDetailPanel(data) {
+    const aqi = data.aqi;
+    const stationName = data.city?.name || 'Unknown Station';
+    const time = data.time?.s ? data.time.s.split(' ')[1] || data.time.s : '--:--';
+
+    document.getElementById('live-station-name').textContent = stationName;
+    document.getElementById('live-station-city').textContent =
+        data.city?.geo ? `Lat: ${data.city.geo[0].toFixed(4)}, Lng: ${data.city.geo[1].toFixed(4)}` : 'India';
+    document.getElementById('live-station-time').textContent = `Updated: ${time}`;
+    document.getElementById('live-aqi-value').textContent = aqi !== '-' ? aqi : '--';
+
+    const iaqi = data.iaqi || {};
+    document.getElementById('live-weather-temp').textContent = iaqi.t ? `${iaqi.t.v} °C` : '-- °C';
+    document.getElementById('live-weather-humidity').textContent = iaqi.h ? `${iaqi.h.v} %` : '-- %';
+    document.getElementById('live-weather-wind').textContent = iaqi.w ? `${iaqi.w.v} m/s` : '-- m/s';
+
+    const gp = (p) => iaqi[p] ? iaqi[p].v : '--';
+    document.getElementById('live-pol-pm25').textContent = gp('pm25');
+    document.getElementById('live-pol-pm10').textContent = gp('pm10');
+    document.getElementById('live-pol-no2').textContent = gp('no2');
+    document.getElementById('live-pol-o3').textContent = gp('o3');
+    document.getElementById('live-pol-co').textContent = gp('co');
+    document.getElementById('live-pol-so2').textContent = gp('so2');
+
+    const cls = classifyAQI(parseFloat(aqi));
+    const badge = document.getElementById('live-status-badge');
+    badge.textContent = cls.status;
+    badge.className = 'status-badge ' + cls.colorClass;
+
+    const fill = document.getElementById('live-gauge-fill');
+    fill.style.stroke = cls.hexColor;
+    const aqiNum = Math.min(500, Math.max(0, parseFloat(aqi) || 0));
+    setTimeout(() => { fill.style.strokeDashoffset = 502 - (aqiNum / 500) * 502; }, 100);
+
+    document.getElementById('live-advisory-main').textContent = cls.advisory;
+    document.getElementById('live-adv-respiratory').textContent = cls.respiratoryAdvice;
+    document.getElementById('live-adv-cardio').textContent = cls.cardioAdvice;
+}
+
+// Load grid of all major Indian cities
+async function loadAllIndiaCities() {
+    const loading = document.getElementById('india-cities-loading');
+    const grid = document.getElementById('india-cities-grid');
+    loading.style.display = 'flex';
+    grid.style.display = 'none';
+    grid.innerHTML = '';
+
+    const token = getToken();
+    document.getElementById('last-refresh-time').innerHTML =
+        '<i class="fa-regular fa-clock"></i> Loading…';
+
+    // Fetch all cities in batches (to avoid rate limiting)
+    const results = [];
+    const batchSize = 5;
+    for (let i = 0; i < INDIA_CITIES.length; i += batchSize) {
+        const batch = INDIA_CITIES.slice(i, i + batchSize);
+        const promises = batch.map(c => fetchCityAQI(c, token));
+        const batchResults = await Promise.allSettled(promises);
+        batchResults.forEach((r, idx) => {
+            results.push({ cityInfo: batch[idx], data: r.status === 'fulfilled' ? r.value : null });
+        });
+        // Small delay between batches
+        if (i + batchSize < INDIA_CITIES.length) {
+            await new Promise(res => setTimeout(res, 200));
+        }
+    }
+
+    // Render grid
+    results.forEach(({ cityInfo, data }) => {
+        const card = createCityCard(cityInfo, data);
+        grid.appendChild(card);
+    });
+
+    loading.style.display = 'none';
+    grid.style.display = 'grid';
+
+    const now = new Date();
+    document.getElementById('last-refresh-time').innerHTML =
+        `<i class="fa-regular fa-clock"></i> Refreshed: ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+}
+
+async function fetchCityAQI(cityInfo, token) {
+    try {
+        // Use the search endpoint – better India station discovery
+        const searchUrl = `https://api.waqi.info/search/?keyword=${encodeURIComponent(cityInfo.query)}&token=${token}`;
+        const res = await fetch(searchUrl);
+        const json = await res.json();
+
+        if (json.status === 'ok' && json.data && json.data.length > 0) {
+            // Prefer Indian stations
+            const station = json.data.find(s => s.station.country === 'IN') || json.data[0];
+            return {
+                aqi: station.aqi,
+                stationName: station.station.name,
+                time: station.time?.stime || ''
+            };
+        }
+    } catch (e) {
+        // ignore
+    }
+
+    // Fallback: direct city endpoint
+    try {
+        const res = await fetch(`https://api.waqi.info/feed/${encodeURIComponent(cityInfo.query)}/?token=${token}`);
+        const json = await res.json();
+        if (json.status === 'ok') {
+            return {
+                aqi: json.data.aqi,
+                stationName: json.data.city?.name || cityInfo.city,
+                time: json.data.time?.s || ''
+            };
+        }
+    } catch (e) { /* ignore */ }
+
+    return null;
+}
+
+function createCityCard(cityInfo, data) {
+    const card = document.createElement('div');
+    card.className = 'india-city-card';
+
+    let aqiNum = null;
+    let aqiText = 'N/A';
+    let cls = { status: 'No Data', colorClass: 'aqi-nodata', hexColor: '#64748b', advisory: '--' };
+
+    if (data && data.aqi !== undefined && data.aqi !== '-' && data.aqi !== null) {
+        aqiNum = parseFloat(data.aqi);
+        if (!isNaN(aqiNum)) {
+            aqiText = Math.round(aqiNum).toString();
+            cls = classifyAQI(aqiNum);
+        }
+    }
+
+    card.style.borderTop = `4px solid ${cls.hexColor}`;
+
+    card.innerHTML = `
+        <div class="city-card-header">
+            <div>
+                <div class="city-card-name">${cityInfo.city}</div>
+                <div class="city-card-state">${cityInfo.state}</div>
+            </div>
+            <div class="city-aqi-badge" style="background:${cls.hexColor}20; color:${cls.hexColor}; border:1px solid ${cls.hexColor}40;">
+                ${aqiText}
+            </div>
+        </div>
+        <div class="city-status-row">
+            <span class="city-status-label ${cls.colorClass}-text">${cls.status}</span>
+            ${data && data.stationName ? `<span class="city-station-tag">${truncate(data.stationName, 28)}</span>` : '<span class="city-station-tag">No Station Found</span>'}
+        </div>
+        <div class="city-mini-bar">
+            <div class="city-mini-fill" style="width:${aqiNum ? Math.min(100, (aqiNum/400)*100) : 0}%; background:${cls.hexColor};"></div>
+        </div>
+        <button class="city-detail-btn" onclick="loadCityDetail('${cityInfo.query}', '${cityInfo.city}')">
+            <i class="fa-solid fa-chart-line"></i> View Details
+        </button>
+    `;
+
+    return card;
+}
+
+function truncate(str, n) {
+    return str.length > n ? str.substring(0, n) + '…' : str;
+}
+
+function showNotification(msg, type) {
+    const n = document.createElement('div');
+    n.className = `notification notification-${type}`;
+    n.textContent = msg;
+    document.body.appendChild(n);
+    setTimeout(() => n.classList.add('show'), 10);
+    setTimeout(() => { n.classList.remove('show'); setTimeout(() => n.remove(), 400); }, 3000);
+}
+
+function classifyAQI(val) {
+    if (isNaN(val) || val === null) return {
+        status: 'No Data', colorClass: 'aqi-good', hexColor: '#64748b',
+        advisory: 'No data available.', respiratoryAdvice: '--', cardioAdvice: '--'
+    };
+    if (val <= 50) return {
+        status: 'Good', colorClass: 'aqi-good', hexColor: '#2ecc71',
+        advisory: 'Air quality is excellent. No precautions necessary.',
+        respiratoryAdvice: 'Perfect for outdoor workouts and activities.',
+        cardioAdvice: 'Open windows. Enjoy clean air ventilation.'
+    };
+    if (val <= 100) return {
+        status: 'Satisfactory', colorClass: 'aqi-satisfactory', hexColor: '#27ae60',
+        advisory: 'Acceptable air quality. Sensitive groups should monitor.',
+        respiratoryAdvice: 'Asthmatics should watch for coughing or shortness of breath.',
+        cardioAdvice: 'Active people can perform normal outdoor exercises.'
+    };
+    if (val <= 200) return {
+        status: 'Moderate', colorClass: 'aqi-moderate', hexColor: '#f1c40f',
+        advisory: 'Sensitive groups may experience health effects.',
+        respiratoryAdvice: 'Wear a mask if outdoors for long periods. Limit running.',
+        cardioAdvice: 'Children and seniors should reduce intense physical outdoor work.'
+    };
+    if (val <= 300) return {
+        status: 'Poor', colorClass: 'aqi-poor', hexColor: '#e67e22',
+        advisory: 'Everyone may experience health effects. Wear N95 mask outdoors.',
+        respiratoryAdvice: 'Use air filters indoors. Avoid outdoor walks.',
+        cardioAdvice: 'Vulnerable heart/lung patients should stay indoors.'
+    };
+    if (val <= 400) return {
+        status: 'Very Poor', colorClass: 'aqi-very-poor', hexColor: '#e74c3c',
+        advisory: 'Health warning. Limit outdoor activities. Keep windows shut.',
+        respiratoryAdvice: 'Do not exercise outdoors. Run air purifiers indoors.',
+        cardioAdvice: 'High risk of asthma triggers. Seniors strictly stay indoors.'
+    };
+    return {
+        status: 'Severe', colorClass: 'aqi-severe', hexColor: '#800000',
+        advisory: 'Emergency health alert. Entire population likely affected.',
+        respiratoryAdvice: 'Stay indoors completely. Use sealed air-conditioned environments.',
+        cardioAdvice: 'Consult medical care immediately if experiencing respiratory pain.'
+    };
+}
+</script>
+
+<style>
+/* ===== Live Page Styles ===== */
+.live-controls-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 20px 28px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.search-section-wrapper {
+    display: flex;
+    gap: 12px;
+    flex: 1.5;
+    min-width: 280px;
+}
+
+.search-box-container {
+    position: relative;
+    flex: 1;
+    display: flex;
+    gap: 8px;
+}
+
+.search-box-container input {
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border-color);
+    padding: 10px 16px 10px 38px;
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+}
+.search-box-container input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+.search-input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.live-meta-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+}
+
+.live-india-badge {
+    background: linear-gradient(135deg, #ff9933, #ffffff20, #138808);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(255,153,51,0.2), rgba(19,136,8,0.2));
+    border: 1px solid rgba(255,153,51,0.4);
+    color: var(--text-primary);
+}
+
+.last-refresh {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.api-token-wrapper {
+    flex: 0 0 auto;
+    min-width: 220px;
+}
+
+.token-settings-dropdown {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 10px 16px;
+    font-size: 13px;
+    cursor: pointer;
+}
+.token-settings-summary {
+    font-weight: 600;
+    color: var(--text-secondary);
+    outline: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.token-settings-content {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    cursor: default;
+}
+.token-input-group { display: flex; gap: 8px; }
+.token-input-group input {
+    flex: 1;
+    background: rgba(0,0,0,0.15);
+    border: 1px solid var(--border-color);
+    padding: 6px 10px;
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 12px;
+    outline: none;
+}
+.btn-save-token {
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: 1px solid rgba(59,130,246,0.2);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.btn-save-token:hover { background: var(--primary); color: white; }
+.token-help { font-size: 10px; color: var(--text-muted); line-height: 1.4; }
+.token-help a { color: var(--primary); text-decoration: none; }
+
+/* City Detail Panel */
+.city-detail-panel {
+    margin-bottom: 32px;
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: var(--radius-md);
+    padding: 0;
+    background: rgba(59,130,246,0.03);
+    overflow: hidden;
+}
+
+.btn-close-detail {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+.btn-close-detail:hover { background: rgba(231,76,60,0.1); color: #e74c3c; }
+
+.live-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 24px;
+    padding: 24px;
+}
+
+.live-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    box-shadow: var(--shadow-md);
+}
+
+.full-width-card { grid-column: span 2; }
+
+.live-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 14px;
+    margin-bottom: 20px;
+}
+.live-card-header h3 {
+    font-family: var(--font-heading);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.live-card-header h3 i { color: var(--primary); }
+
+.live-badge {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+    background: rgba(255,255,255,0.03);
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.live-station-info { margin-bottom: 20px; }
+.live-station-info h2 {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.live-gauge-section { display: flex; align-items: center; gap: 24px; }
+.live-device-status { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+
+.live-details-column { display: flex; flex-direction: column; gap: 20px; }
+
+.weather-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+.weather-card-item {
+    background: rgba(0,0,0,0.1);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    text-align: center;
+}
+.weather-card-item i { font-size: 18px; }
+.weather-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+.weather-val { font-family: var(--font-heading); font-size: 14px; font-weight: 700; color: var(--text-primary); }
+
+.pollutants-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.pollutant-card-item {
+    background: rgba(255,255,255,0.01);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    transition: transform 0.2s;
+}
+.pollutant-card-item:hover { transform: scale(1.05); background: rgba(255,255,255,0.03); }
+.pol-name { font-size: 11px; font-weight: 700; color: var(--text-secondary); }
+.pol-value { font-family: var(--font-heading); font-size: 18px; font-weight: 800; color: var(--text-primary); }
+.pol-unit { font-size: 9px; color: var(--text-muted); text-transform: uppercase; }
+
+.live-advisory-wrapper { display: flex; flex-direction: column; gap: 16px; }
+.live-advisory-wrapper > p {
+    font-size: 14px;
+    color: var(--text-primary);
+    font-weight: 500;
+    line-height: 1.6;
+    border-left: 3px solid var(--primary);
+    padding-left: 14px;
+}
+.advisory-bullets-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.advisory-bullet-item {
+    display: flex;
+    gap: 14px;
+    background: rgba(255,255,255,0.01);
+    border: 1px solid var(--border-color);
+    padding: 16px;
+    border-radius: var(--radius-sm);
+}
+.advisory-bullet-item i { font-size: 22px; margin-top: 3px; }
+.advisory-bullet-item p { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-top: 4px; }
+
+/* ===== India Cities Grid Section ===== */
+.india-grid-section { margin-top: 8px; }
+
+.section-header-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.section-header-bar h2 {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.section-header-bar h2 i { color: var(--primary); }
+
+.legend-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.india-loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 80px 20px;
+    color: var(--text-muted);
+}
+
+.india-cities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 18px;
+}
+
+.india-city-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.india-city-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.city-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.city-card-name {
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.city-card-state {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+.city-aqi-badge {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 800;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.city-status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+.city-status-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.city-station-tag {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: right;
+    line-height: 1.3;
+}
+
+/* AQI color text helpers */
+.aqi-good-text { color: #2ecc71; }
+.aqi-satisfactory-text { color: #27ae60; }
+.aqi-moderate-text { color: #f1c40f; }
+.aqi-poor-text { color: #e67e22; }
+.aqi-very-poor-text { color: #e74c3c; }
+.aqi-severe-text { color: #800000; }
+.aqi-nodata-text { color: #64748b; }
+
+.city-mini-bar {
+    height: 4px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.city-mini-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease;
+}
+
+.city-detail-btn {
+    background: rgba(59,130,246,0.08);
+    color: var(--primary);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    width: 100%;
+}
+.city-detail-btn:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* Notification toast */
+.notification {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s;
+    z-index: 9999;
+}
+.notification.show { opacity: 1; transform: translateY(0); }
+.notification-success { background: #27ae60; }
+.notification-info { background: var(--primary); }
+
+/* Pulse animation */
+.animate-pulse {
+    animation: pulse-red 2s infinite;
+    color: var(--color-danger);
+}
+@keyframes pulse-red {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+@media (max-width: 991px) {
+    .live-grid { grid-template-columns: 1fr; }
+    .full-width-card { grid-column: span 1; }
+    .advisory-bullets-grid { grid-template-columns: 1fr; }
+    .india-cities-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+}
+</style>
+{% endblock %}

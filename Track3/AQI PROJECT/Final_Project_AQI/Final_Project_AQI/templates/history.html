@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Prediction Log{% endblock %}
+
+{% block content %}
+<div class="history-container">
+    <div class="history-card">
+        <div class="history-header-wrapper">
+            <div class="history-title-box">
+                <h3><i class="fa-solid fa-clock-rotate-left"></i> Run History</h3>
+                <p>Saved predictions generated using the pre-trained Random Forest model.</p>
+            </div>
+            {% if predictions_log %}
+            <button id="clear-all-btn" class="btn btn-outline-danger">
+                <i class="fa-solid fa-trash-can"></i> Clear Log
+            </button>
+            {% endif %}
+        </div>
+
+        {% if not predictions_log %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fa-solid fa-folder-open"></i>
+            </div>
+            <h3>No predictions generated yet</h3>
+            <p>Your predicted AQI scores will be saved here in the database automatically. Try generating your first prediction!</p>
+            <a href="{{ url_for('predict') }}" class="btn btn-primary">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Predict Now
+            </a>
+        </div>
+        {% else %}
+        <div class="table-responsive">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Date Run</th>
+                        <th>Target Date</th>
+                        <th>State</th>
+                        <th>City / Area</th>
+                        <th>Pollutant</th>
+                        <th>Stations</th>
+                        <th>Predicted AQI</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="history-table-body">
+                    {% for log in predictions_log %}
+                    <tr id="row-{{ log['id'] }}">
+                        <td class="text-muted">{{ log['created_at'].split('.')[0] }}</td>
+                        <td><strong>{{ log['prediction_date'] }}</strong></td>
+                        <td>{{ log['state'] }}</td>
+                        <td>{{ log['area'] }}</td>
+                        <td><code class="pollutant-code">{{ log['pollutant'] }}</code></td>
+                        <td>{{ log['stations'] }}</td>
+                        <td>
+                            <span class="aqi-value-text" style="color: {% if log['predicted_aqi'] <= 50 %}#2ecc71{% elif log['predicted_aqi'] <= 100 %}#27ae60{% elif log['predicted_aqi'] <= 200 %}#f1c40f{% elif log['predicted_aqi'] <= 300 %}#e67e22{% elif log['predicted_aqi'] <= 400 %}#e74c3c{% else %}#800000{% endif %};">
+                                <strong>{{ log['predicted_aqi'] }}</strong>
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-pill {{ log['color_class'] }}">{{ log['air_quality_status'] }}</span>
+                        </td>
+                        <td>
+                            <button class="btn-delete" onclick="deleteHistoryRow({{ log['id'] }})" title="Delete entry">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

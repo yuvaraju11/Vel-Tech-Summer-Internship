@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart City | India Air Quality Index Predictor</title>
+    <meta name="description" content="Predict and monitor Air Quality Index across Indian cities with advanced machine learning.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-city logo-icon"></i>
+                    <div class="logo-text">
+                        <span class="logo-title">AeroScope</span>
+                        <span class="logo-subtitle">AQI Smart City</span>
+                    </div>
+                </div>
+            </div>
+            <nav class="sidebar-menu">
+                <ul>
+                    <li class="{% if active_page == 'dashboard' %}active{% endif %}">
+                        <a href="{{ url_for('dashboard') }}">
+                            <i class="fa-solid fa-chart-line nav-icon"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="{% if active_page == 'live' %}active{% endif %}">
+                        <a href="{{ url_for('live_aqi') }}">
+                            <i class="fa-solid fa-satellite-dish nav-icon"></i>
+                            <span>Live AQI Monitor</span>
+                        </a>
+                    </li>
+                    <li class="{% if active_page == 'predict' %}active{% endif %}">
+                        <a href="{{ url_for('predict') }}">
+                            <i class="fa-solid fa-wand-magic-sparkles nav-icon"></i>
+                            <span>Predict AQI</span>
+                        </a>
+                    </li>
+                    <li class="{% if active_page == 'history' %}active{% endif %}">
+                        <a href="{{ url_for('history') }}">
+                            <i class="fa-solid fa-clock-rotate-left nav-icon"></i>
+                            <span>Prediction Log</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="theme-toggle-btn" class="theme-toggle-btn">
+                    <i class="fa-solid fa-sun icon-light"></i>
+                    <i class="fa-solid fa-moon icon-dark"></i>
+                    <span class="theme-text">Toggle Theme</span>
+                </button>
+                <div class="developer-credit">
+                    <p>Smart City Project</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="mobile-nav-toggle" id="mobile-toggle">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="header-title-wrapper">
+                        <h1 class="header-title">{% block page_title %}Dashboard{% endblock %}</h1>
+                        <p class="header-subtitle">Real-time Pollution Predictive Analysis</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="current-date-badge">
+                        <i class="fa-regular fa-calendar"></i>
+                        <span id="header-date">June 14, 2026</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-body">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Set header date to current date
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('header-date').innerText = new Date().toLocaleDateString('en-US', dateOptions);
+    </script>
+</body>
+</html>

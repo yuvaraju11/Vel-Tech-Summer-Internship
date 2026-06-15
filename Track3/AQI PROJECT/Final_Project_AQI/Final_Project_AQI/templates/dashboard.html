@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <!-- Metric Cards -->
+    <div class="metrics-container">
+        <!-- Card 1: National Average -->
+        <div class="metric-card card-gradient-aqi">
+            <div class="card-icon">
+                <i class="fa-solid fa-leaf"></i>
+            </div>
+            <div class="card-info">
+                <h3 class="metric-title">National Avg AQI</h3>
+                <p class="metric-value">{{ national_avg }}</p>
+                <span class="metric-badge {% if national_avg <= 50 %}badge-good{% elif national_avg <= 100 %}badge-satisfactory{% else %}badge-moderate{% endif %}">
+                    {% if national_avg <= 50 %}Good{% elif national_avg <= 100 %}Satisfactory{% else %}Moderate{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Card 2: Total Cities -->
+        <div class="metric-card">
+            <div class="card-icon blue-icon">
+                <i class="fa-solid fa-map-location-dot"></i>
+            </div>
+            <div class="card-info">
+                <h3 class="metric-title">Monitoring Cities</h3>
+                <p class="metric-value">{{ total_cities }}</p>
+                <span class="metric-trend">Across 32 States</span>
+            </div>
+        </div>
+
+        <!-- Card 3: Total Records -->
+        <div class="metric-card">
+            <div class="card-icon purple-icon">
+                <i class="fa-solid fa-database"></i>
+            </div>
+            <div class="card-info">
+                <h3 class="metric-title">Records Analyzed</h3>
+                <p class="metric-value">{{ "{:,}".format(total_records) }}</p>
+                <span class="metric-trend">2022 - 2025 India AQI</span>
+            </div>
+        </div>
+
+        <!-- Card 4: Most Polluted City -->
+        <div class="metric-card">
+            <div class="card-icon red-icon">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="card-info">
+                <h3 class="metric-title">Cleanest City</h3>
+                <p class="metric-value-small">{{ cleanest_cities[0]['area'] }}</p>
+                <span class="metric-trend text-success">Avg AQI: {{ cleanest_cities[0]['avg_aqi'] }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section: Row 1 -->
+    <div class="charts-row">
+        <!-- Chart 1: Temporal Trend -->
+        <div class="chart-card large-chart">
+            <div class="chart-header">
+                <h3><i class="fa-solid fa-chart-area"></i> Time-Based AQI Trend</h3>
+                <p>Monthly average AQI values from 2022 to 2025</p>
+            </div>
+            <div class="chart-container">
+                <canvas id="temporalTrendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 2: Pollutant Distribution -->
+        <div class="chart-card small-chart">
+            <div class="chart-header">
+                <h3><i class="fa-solid fa-chart-pie"></i> Prominent Pollutants</h3>
+                <p>Distribution of major pollutants across cities</p>
+            </div>
+            <div class="chart-container">
+                <canvas id="pollutantsDistChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section: Row 2 -->
+    <div class="charts-row">
+        <!-- Chart 3: State-wise AQI -->
+        <div class="chart-card medium-chart">
+            <div class="chart-header">
+                <h3><i class="fa-solid fa-chart-bar"></i> State-wise Average AQI</h3>
+                <p>Comparative air quality index across Indian states</p>
+            </div>
+            <div class="chart-container">
+                <canvas id="stateAqiChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail List Cards -->
+    <div class="details-row">
+        <!-- Cleanest Cities -->
+        <div class="details-card">
+            <div class="details-header bg-success-soft">
+                <h3><i class="fa-solid fa-circle-check text-success"></i> Top Cleanest Cities</h3>
+                <span>Lowest Average AQI</span>
+            </div>
+            <ul class="city-list">
+                {% for city in cleanest_cities %}
+                <li class="city-list-item">
+                    <div class="city-info">
+                        <span class="city-name">{{ city['area'] }}</span>
+                        <span class="city-state">{{ city['state'] }}</span>
+                    </div>
+                    <span class="city-aqi aqi-good-badge">{{ city['avg_aqi'] }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Most Polluted Cities -->
+        <div class="details-card">
+            <div class="details-header bg-danger-soft">
+                <h3><i class="fa-solid fa-triangle-exclamation text-danger"></i> Top Most Polluted Cities</h3>
+                <span>Highest Average AQI</span>
+            </div>
+            <ul class="city-list">
+                {% for city in polluted_cities %}
+                <li class="city-list-item">
+                    <div class="city-info">
+                        <span class="city-name">{{ city['area'] }}</span>
+                        <span class="city-state">{{ city['state'] }}</span>
+                    </div>
+                    <span class="city-aqi {% if city['avg_aqi'] >= 200 %}aqi-poor-badge{% else %}aqi-moderate-badge{% endif %}">{{ city['avg_aqi'] }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Send dashboard stats to JavaScript for Chart.js rendering -->
+<script>
+    window.dashboardData = {
+        temporalTrends: {{ temporal_trends | tojson }},
+        pollutantsDist: {{ pollutants_dist | tojson }},
+        stateAqiList: {{ state_aqi_list | tojson }}
+    };
+</script>
+{% endblock %}
