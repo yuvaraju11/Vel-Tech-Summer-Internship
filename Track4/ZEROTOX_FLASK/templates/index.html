@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ZEROTOX ECOSHIELD v8 — Real Alerts</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+<!-- ══════════════ LOGIN SCREEN ══════════════ -->
+<div id="loginScreen">
+  <div class="login-logo">ZERO<b>TOX</b> ECHO<b style="color:var(--t)">SHIELD</b> AI</div>
+  <div class="login-sub">AI-Powered Toxic Gas Detection System</div>
+  <div class="login-box">
+    <div class="login-title">🔐 LOGIN</div>
+    <input class="linput" id="lusername" type="text" placeholder="👤 Username" autocomplete="off">
+    <input class="linput" id="lpassword" type="password" placeholder="🔒 Password">
+    <button class="lbtn" onclick="doLogin()">ENTER SYSTEM</button>
+    <div class="lerr" id="lerr">❌ Wrong username or password!</div>
+    <div style="margin-top:16px;font-size:11px;color:#3a6a4a;text-align:center">
+      Default: admin / zerotox123<br>
+      <span style="color:#2a5a3a">or farmer/farm123 · factory/fact123 · govt/govt123</span>
+    </div>
+    <div class="lang-row">
+      <button class="langbtn on" id="lang-en" onclick="setLang('en')">English</button>
+      <button class="langbtn" id="lang-ta" onclick="setLang('ta')">தமிழ்</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SMS POPUP SIMULATION ══════════════ -->
+<div id="smsPopup">
+  <div class="sms-popup-bar">
+    <div class="sms-popup-appicon" id="smsPopupIcon">💬</div>
+    <div>
+      <div class="sms-popup-appname" id="smsPopupApp">Messages</div>
+      <div style="font-size:9px;color:#444" id="smsPopupNum">+91 98765XXXXX</div>
+    </div>
+    <div class="sms-popup-time" id="smsPopupTime">now</div>
+    <div class="sms-popup-dismiss" onclick="dismissSMSPopup()">✕</div>
+  </div>
+  <div class="sms-popup-body">
+    <div class="sms-popup-sender" id="smsPopupSender">ZEROTOX ALERT</div>
+    <div class="sms-popup-msg" id="smsPopupMsg">Gas alert message here</div>
+    <div class="sms-popup-actions">
+      <button class="sms-pa reply" id="smsReplyBtn" onclick="dismissSMSPopup()">✅ Reply</button>
+      <button class="sms-pa close" onclick="dismissSMSPopup()">Dismiss</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="alarmOverlay">
+  <div class="alarm-icon">🚨</div>
+  <div class="alarm-title" id="alarmTitle">DANGER ALERT!</div>
+  <div class="alarm-gas" id="alarmGas">SO₂ — Sulfur Dioxide</div>
+  <div class="alarm-ppm" id="alarmPpm">480 ppm</div>
+  <div class="alarm-action" id="alarmAction">
+    ☠️ Lime scrubber ACTIVATED<br>
+    📢 Authorities NOTIFIED<br>
+    📱 SMS sent to emergency contact<br>
+    🌀 Ventilation system OPENED
+  </div>
+  <button class="alarm-stopbtn" onclick="stopAlarm()">🔕 STOP ALARM</button>
+</div>
+
+<!-- ══════════════ PREDICTION BANNER ══════════════ -->
+<div id="predBanner">
+  <div class="pred-icon">⏰</div>
+  <div class="pred-text" id="predText">AI PREDICTS: SO₂ will reach danger level in 8 minutes! Auto-ventilation opening now...</div>
+  <div class="pred-close" onclick="document.getElementById('predBanner').classList.remove('show')">✕</div>
+</div>
+
+<!-- ══════════════ SHOWCASE MODAL ══════════════ -->
+<div id="scModal" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="scmod-box" id="scModBox"></div>
+</div>
+
+<!-- ══════════════ TOP NAV ══════════════ -->
+<nav class="topnav">
+  <div class="logo">ZERO<b>TOX</b> <b style="color:var(--t)">AI</b></div>
+  <div class="topright">
+    <div class="live-badge"><div class="ldot"></div>LIVE</div>
+    <button class="logoutbtn" onclick="doLogout()">⏏ <span id="logoutlbl">Logout</span></button>
+  </div>
+</nav>
+
+<div id="notifw"></div>
+
+<!-- ══════════════ PAGE: HOME ══════════════ -->
+<div id="pg-home" class="pg show">
+  <div class="pgtitle">🌿 <em>ZEROTOX</em> ECOSHIELD</div>
+  <div class="pgsub" id="sub-home">Real-time toxic gas detection • AI-powered conversion • Eco protection</div>
+
+  <div class="statgrid">
+    <div class="statbox"><div class="slbl" id="lbl-aqi">Air Quality</div><div class="sval y" id="h-aqi">142</div><div class="sunit">⚠️ Moderate</div></div>
+    <div class="statbox"><div class="slbl">Sensors</div><div class="sval g">48</div><div class="sunit">🟢 Online</div></div>
+    <div class="statbox"><div class="slbl">Danger Zones</div><div class="sval r">3</div><div class="sunit">🔴 Action</div></div>
+    <div class="statbox"><div class="slbl">Converted</div><div class="sval b" id="h-conv">2,847</div><div class="sunit">kg Today</div></div>
+    <div class="statbox"><div class="slbl">Alerts</div><div class="sval g">12</div><div class="sunit">📲 24h</div></div>
+    <div class="statbox"><div class="slbl">Trees</div><div class="sval g">340</div><div class="sunit">🌳 Planted</div></div>
+    <div class="statbox"><div class="slbl">CO₂ Captured</div><div class="sval p">12.4t</div><div class="sunit">♻️ Month</div></div>
+    <div class="statbox"><div class="slbl">Health</div><div class="sval g">99%</div><div class="sunit">✅ OK</div></div>
+  </div>
+
+  <!-- VENTILATION STATUS -->
+  <div class="sectitle" id="lbl-vent">Ventilation & Conversion System</div>
+  <div class="ventcard">
+    <div class="vent-status">
+      <div class="vent-light" id="ventLight"></div>
+      <div>
+        <div class="vent-label" id="ventLabel">Ventilation: STANDBY</div>
+        <div class="vent-sublabel" id="ventSub">Monitoring gas levels — auto-activates on detection</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:#4a7a5e;margin-bottom:6px" id="lbl-conv-eff">Conversion Efficiency</div>
+    <div class="vent-bar"><div class="vent-fill" id="ventFill" style="width:0%"></div></div>
+    <div class="vent-info" id="ventInfo">System ready. Will auto-activate when gas exceeds safe limit.</div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="abtn g" onclick="openVent()">🌀 Force Open Vent</button>
+      <button class="abtn r" onclick="closeVent()">🔒 Close Vent</button>
+      <button class="abtn y" onclick="triggerAlarm('SO₂','480 ppm','Sulfur Dioxide')">🚨 Test Alarm</button>
+    </div>
+  </div>
+
+  <!-- QUICK GAS STATUS -->
+  <div class="sectitle" id="lbl-quickgas">Quick Gas Status</div>
+  <div class="card">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>SO₂</span><span style="color:var(--red);font-family:'Orbitron',monospace" id="h-so2">480 ppm</span></div>
+        <div class="pbar"><div class="pbfill r" style="width:90%"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>NO₂</span><span style="color:var(--warn);font-family:'Orbitron',monospace" id="h-no2">178 ppm</span></div>
+        <div class="pbar"><div class="pbfill y" style="width:67%"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>CO</span><span style="color:var(--g);font-family:'Orbitron',monospace" id="h-co">35 ppm</span></div>
+        <div class="pbar"><div class="pbfill g" style="width:18%"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>H₂S</span><span style="color:var(--red);font-family:'Orbitron',monospace">42 ppm</span></div>
+        <div class="pbar"><div class="pbfill r" style="width:78%"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: MONITOR ══════════════ -->
+<div id="pg-monitor" class="pg">
+  <div class="pgtitle">📡 Gas <em>Monitor</em></div>
+  <div class="pgsub">Live readings — updates every 3 seconds</div>
+  <div class="gasgrid">
+    <div class="gasbox danger"><div class="gsym">SO₂</div><div class="gname">Sulfur Dioxide</div><div class="gbar"><div class="gbfill d" style="width:90%"></div></div><div class="gppm d" id="m-so2">480 ppm</div><span class="gbadge d">☠️ DANGER</span></div>
+    <div class="gasbox danger"><div class="gsym">H₂S</div><div class="gname">Hydrogen Sulfide</div><div class="gbar"><div class="gbfill d" style="width:82%"></div></div><div class="gppm d" id="m-h2s">42 ppm</div><span class="gbadge d">☠️ DANGER</span></div>
+    <div class="gasbox warn"><div class="gsym">NO₂</div><div class="gname">Nitrogen Dioxide</div><div class="gbar"><div class="gbfill w" style="width:67%"></div></div><div class="gppm w" id="m-no2">178 ppm</div><span class="gbadge w">⚠️ WARNING</span></div>
+    <div class="gasbox warn"><div class="gsym">VOC</div><div class="gname">Volatile Organics</div><div class="gbar"><div class="gbfill w" style="width:55%"></div></div><div class="gppm w" id="m-voc">0.55 mg/m³</div><span class="gbadge w">⚠️ WARNING</span></div>
+    <div class="gasbox"><div class="gsym">CO</div><div class="gname">Carbon Monoxide</div><div class="gbar"><div class="gbfill s" style="width:18%"></div></div><div class="gppm s" id="m-co">35 ppm</div><span class="gbadge s">✅ SAFE</span></div>
+    <div class="gasbox"><div class="gsym">NH₃</div><div class="gname">Ammonia</div><div class="gbar"><div class="gbfill s" style="width:22%"></div></div><div class="gppm s" id="m-nh3">22 ppm</div><span class="gbadge s">✅ SAFE</span></div>
+    <div class="gasbox"><div class="gsym">CH₄</div><div class="gname">Methane</div><div class="gbar"><div class="gbfill s" style="width:16%"></div></div><div class="gppm s" id="m-ch4">820 ppm</div><span class="gbadge s">✅ SAFE</span></div>
+    <div class="gasbox"><div class="gsym">CO₂</div><div class="gname">Carbon Dioxide</div><div class="gbar"><div class="gbfill s" style="width:40%"></div></div><div class="gppm s" id="m-co2">412 ppm</div><span class="gbadge s">✅ NORMAL</span></div>
+  </div>
+  <div class="sectitle">Sensor Network</div>
+  <div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto">
+    <table class="rtbl">
+      <tr><th>Sensor</th><th>Location</th><th>Status</th><th>Reading</th><th>Battery</th></tr>
+      <tr><td class="mono" style="font-size:11px">C-07</td><td>Factory Zone C</td><td><span class="badge r">ALERT</span></td><td style="color:var(--red)">SO₂: 480ppm</td><td style="color:var(--g)">87%</td></tr>
+      <tr><td class="mono" style="font-size:11px">D-12</td><td>Highway Zone D</td><td><span class="badge y">WARN</span></td><td style="color:var(--warn)">NO₂: 178ppm</td><td style="color:var(--g)">92%</td></tr>
+      <tr><td class="mono" style="font-size:11px">S-03</td><td>Sewage Plant E</td><td><span class="badge y">WARN</span></td><td style="color:var(--warn)">H₂S: 42ppm</td><td style="color:var(--warn)">41%</td></tr>
+      <tr><td class="mono" style="font-size:11px">A-01</td><td>Residential A</td><td><span class="badge g">SAFE</span></td><td style="color:var(--g)">CO: 35ppm</td><td style="color:var(--g)">96%</td></tr>
+      <tr><td class="mono" style="font-size:11px">B-04</td><td>Farm Zone B</td><td><span class="badge g">SAFE</span></td><td style="color:var(--g)">NH₃: 22ppm</td><td style="color:var(--g)">78%</td></tr>
+    </table>
+  </div></div>
+</div>
+
+<!-- ══════════════ PAGE: MAP ══════════════ -->
+<div id="pg-map" class="pg">
+  <div class="pgtitle">🗺️ Live <em>Zone Map</em></div>
+  <div class="pgsub">Tap any zone to see details • Red zones are pulsing danger areas</div>
+  <div class="card" style="padding:14px">
+    <div class="mapbox" id="mainMap">
+      <!-- Buildings/factories -->
+      <div class="mmarker" style="top:8px;left:62%;font-size:14px" title="Factory">🏭</div>
+      <div class="mmarker" style="top:55%;left:8%" title="Farm">🌾</div>
+      <div class="mmarker" style="bottom:8px;left:50%;font-size:13px" title="Sewage">🏗️</div>
+      <div class="mmarker" style="top:30%;right:5%;font-size:13px" title="Hospital">🏥</div>
+      <!-- Zone circles -->
+      <div class="mz s" style="width:62px;height:62px;top:12px;left:8%" onclick="showZone('A','SAFE','AQI: 42','CO: 35 ppm','All gases in safe range ✅','var(--g)')">
+        <span>ZONE A</span><span class="mz-val">AQI 42</span>
+      </div>
+      <div class="mz s" style="width:56px;height:56px;top:42%;left:30%" onclick="showZone('B','SAFE','AQI: 58','NO₂: 95 ppm','Slight increase — monitoring ✅','var(--g)')">
+        <span>ZONE B</span><span class="mz-val">AQI 58</span>
+      </div>
+      <div class="mz d" style="width:70px;height:70px;top:8px;right:10%" onclick="showZone('C','DANGER ☠️','AQI: 340','SO₂: 480 ppm','AI activated lime scrubber! Evacuation advisory issued','var(--red)')">
+        <span>ZONE C</span><span class="mz-val">AQI 340</span>
+      </div>
+      <div class="mz w" style="width:58px;height:58px;bottom:20px;left:18%" onclick="showZone('D','WARNING ⚠️','AQI: 165','NO₂: 178 ppm','SCR system triggered. Traffic rerouted','var(--warn)')">
+        <span>ZONE D</span><span class="mz-val">AQI 165</span>
+      </div>
+      <div class="mz w" style="width:54px;height:54px;bottom:22px;right:22%" onclick="showZone('E','WARNING ⚠️','AQI: 148','H₂S: 28 ppm','Oxidation chamber active. Workers alerted','var(--warn)')">
+        <span>ZONE E</span><span class="mz-val">AQI 148</span>
+      </div>
+      <div class="mz s" style="width:50px;height:50px;top:38%;left:56%" onclick="showZone('F','SAFE','AQI: 38','All gases','All within safe limits ✅','var(--g)')">
+        <span>ZONE F</span><span class="mz-val">AQI 38</span>
+      </div>
+      <div id="mapTooltip" class="mtooltip"></div>
+      <div style="position:absolute;bottom:5px;right:8px;font-size:9px;color:#1a4a2a;font-family:'Orbitron',monospace">ZEROTOX LIVE MAP v4</div>
+    </div>
+    <div class="mapleg">
+      <div class="mleg"><div class="mldot" style="background:var(--g)"></div>Safe</div>
+      <div class="mleg"><div class="mldot" style="background:var(--warn)"></div>Warning</div>
+      <div class="mleg"><div class="mldot" style="background:var(--red)"></div>Danger</div>
+      <div class="mleg">🏭 Factory</div>
+      <div class="mleg">🏥 Hospital</div>
+      <div class="mleg">🌾 Farm</div>
+    </div>
+  </div>
+  <!-- Zone detail card -->
+  <div id="zoneDetail" style="display:none">
+    <div class="sectitle">Zone Details</div>
+    <div class="card" id="zoneDetailCard"></div>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: SHOWCASE ══════════════ -->
+<div id="pg-showcase" class="pg">
+  <div class="pgtitle">☠️ Toxic Gas <em>Showcase</em></div>
+  <div class="pgsub">Tap any gas card to see full details, formula and conversion method</div>
+  <div class="showcase-grid">
+    <div class="showcase-card" onclick="showGasModal('co')"><div class="sc-sym" style="color:var(--blue)">CO</div><div class="sc-name">Carbon Monoxide</div><div class="sc-danger">Blocks oxygen in blood</div></div>
+    <div class="showcase-card" onclick="showGasModal('so2')"><div class="sc-sym" style="color:var(--red)">SO₂</div><div class="sc-name">Sulfur Dioxide</div><div class="sc-danger">Acid rain + lung disease</div></div>
+    <div class="showcase-card" onclick="showGasModal('no2')"><div class="sc-sym" style="color:var(--warn)">NO₂</div><div class="sc-name">Nitrogen Dioxide</div><div class="sc-danger">Smog + breathing damage</div></div>
+    <div class="showcase-card" onclick="showGasModal('nh3')"><div class="sc-sym" style="color:var(--t)">NH₃</div><div class="sc-name">Ammonia</div><div class="sc-danger">Burns eyes and throat</div></div>
+    <div class="showcase-card" onclick="showGasModal('h2s')"><div class="sc-sym" style="color:var(--red)">H₂S</div><div class="sc-name">Hydrogen Sulfide</div><div class="sc-danger">Lethal in minutes</div></div>
+    <div class="showcase-card" onclick="showGasModal('ch4')"><div class="sc-sym" style="color:var(--purple)">CH₄</div><div class="sc-name">Methane</div><div class="sc-danger">Explosion + greenhouse</div></div>
+    <div class="showcase-card" onclick="showGasModal('voc')"><div class="sc-sym" style="color:var(--g)">VOC</div><div class="sc-name">Volatile Organics</div><div class="sc-danger">Cancer + liver damage</div></div>
+    <div class="showcase-card" onclick="showGasModal('co2')"><div class="sc-sym" style="color:#aaaaaa">CO₂</div><div class="sc-name">Carbon Dioxide</div><div class="sc-danger">Greenhouse gas effect</div></div>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: SMS ALERT (v8 REAL) ══════════════ -->
+<div id="pg-sms" class="pg">
+  <div class="pgtitle">📱 Real <em>Alert System</em></div>
+  <div class="pgsub">Send REAL WhatsApp & SMS messages to your phone</div>
+
+  <!-- REAL ALERT BANNER -->
+  <div style="background:linear-gradient(135deg,#0d2b0d,#0a1f0a);border:2px solid #25D366;border-radius:14px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px">
+    <div style="font-size:28px">🟢</div>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:#25D366;font-family:'Orbitron',monospace">REAL MESSAGING ENABLED — v8</div>
+      <div style="font-size:11px;color:#4a9a5a;margin-top:2px">WhatsApp opens on your phone · SMS sends directly · No simulation!</div>
+    </div>
+  </div>
+
+  <!-- Phone tabs -->
+  <div class="phone-tabs">
+    <div class="phone-tab on" id="tab-wa" onclick="switchSMSTab('wa')">💬 WhatsApp</div>
+    <div class="phone-tab" id="tab-sms" onclick="switchSMSTab('sms')">📩 SMS</div>
+    <div class="phone-tab" id="tab-contacts" onclick="switchSMSTab('contacts')" style="background:#111">📞 Contacts</div>
+    <div class="phone-tab" id="tab-log" onclick="switchSMSTab('log')" style="background:#111">📋 Log</div>
+  </div>
+
+  <!-- ── WHATSAPP PANEL ── -->
+  <div id="panel-wa">
+    <!-- HOW IT WORKS -->
+    <div class="card" style="background:#0a1f0a;border-color:rgba(37,211,102,0.3);margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:#25D366;letter-spacing:1px;margin-bottom:8px">ℹ️ HOW REAL WHATSAPP WORKS</div>
+      <div style="font-size:11px;color:#4a7a5e;line-height:1.7">
+        1️⃣ Save your WhatsApp number below<br>
+        2️⃣ Click <strong style="color:#25D366">Send via WhatsApp</strong> — WhatsApp opens on your phone<br>
+        3️⃣ The alert message is pre-filled — just tap <strong style="color:#25D366">Send ✓</strong><br>
+        4️⃣ For auto-alerts: use <strong style="color:#ffaa00">Twilio API</strong> (see bottom)
+      </div>
+    </div>
+
+    <!-- WhatsApp composer -->
+    <div class="smscard" style="background:#111;border-color:#1a2a1a">
+      <div style="font-size:12px;font-weight:700;color:#25D366;margin-bottom:10px">💬 Compose WhatsApp Alert</div>
+      <div class="sms-input-row" style="margin-bottom:8px">
+        <input class="smsinput" id="wa-compose-num" type="tel" placeholder="📱 WhatsApp number (with country code e.g. +919876543210)" style="background:#1a2a1a;border-color:#1a3a1a">
+      </div>
+      <textarea id="wa-compose-msg" rows="4" class="smsinput" style="width:100%;resize:none;background:#1a2a1a;border-color:#1a3a1a;font-size:12px;line-height:1.6;padding:12px">🚨 ZEROTOX ECOSHIELD ALERT
+Gas: SO₂ | Level: 480 ppm
+Zone: C (Factory Area)
+Status: CRITICAL ⚠️
+AI Action: Lime Scrubber ACTIVATED ✅
+Time: {TIME}
+→ Stay indoors. Evacuate Zone C.</textarea>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button onclick="sendRealWhatsApp()" style="flex:2;padding:13px;background:#25D366;border:none;border-radius:10px;color:#fff;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px">📤 SEND via WhatsApp</button>
+        <button onclick="fillAlertMsg('wa','so2','480ppm','Zone C','CRITICAL')" style="flex:1;padding:13px;background:rgba(255,59,59,0.15);border:1px solid rgba(255,59,59,0.3);border-radius:10px;color:var(--red);font-size:12px;cursor:pointer;font-weight:600">🚨 SO₂ Alert</button>
+        <button onclick="fillAlertMsg('wa','no2','178ppm','Zone D','WARNING')" style="flex:1;padding:13px;background:rgba(255,170,0,0.12);border:1px solid rgba(255,170,0,0.3);border-radius:10px;color:var(--warn);font-size:12px;cursor:pointer;font-weight:600">⚠️ NO₂ Alert</button>
+      </div>
+      <div style="font-size:10px;color:#3a6a4a;margin-top:8px;text-align:center">Opens WhatsApp app on your phone with message pre-filled ✓</div>
+    </div>
+
+    <!-- Quick send to all contacts -->
+    <div class="smscard" style="margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:#25D366;margin-bottom:10px">⚡ Quick Alert — All WhatsApp Contacts</div>
+      <div id="wa-quick-contacts" style="font-size:12px;color:#4a7a5e;margin-bottom:10px">No contacts saved. Go to Contacts tab →</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="sendToAllWA('CRITICAL','SO₂','480ppm','Zone C')" style="flex:1;padding:11px;background:rgba(255,59,59,0.15);border:1px solid rgba(255,59,59,0.3);border-radius:10px;color:var(--red);font-size:12px;cursor:pointer;font-weight:600">🚨 CRITICAL Alert All</button>
+        <button onclick="sendToAllWA('WARNING','NO₂','178ppm','Zone D')" style="flex:1;padding:11px;background:rgba(255,170,0,0.12);border:1px solid rgba(255,170,0,0.3);border-radius:10px;color:var(--warn);font-size:12px;cursor:pointer;font-weight:600">⚠️ WARNING Alert All</button>
+        <button onclick="sendToAllWA('ALL CLEAR','AQI','42','All Zones')" style="flex:1;padding:11px;background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.25);border-radius:10px;color:var(--g);font-size:12px;cursor:pointer;font-weight:600">✅ All Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SMS PANEL ── -->
+  <div id="panel-sms" style="display:none">
+    <!-- HOW IT WORKS -->
+    <div class="card" style="background:#001a33;border-color:rgba(0,122,255,0.3);margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:#007AFF;letter-spacing:1px;margin-bottom:8px">ℹ️ HOW REAL SMS WORKS</div>
+      <div style="font-size:11px;color:#4a7a5e;line-height:1.7">
+        <strong style="color:#00cfff">Option 1 — Direct SMS (free):</strong> Opens your phone's SMS app with the message ready. Just tap Send!<br><br>
+        <strong style="color:#00cfff">Option 2 — Twilio API (auto-send):</strong> Enter your Twilio credentials below to send SMS automatically without opening any app.
+      </div>
+    </div>
+
+    <!-- SMS Composer -->
+    <div class="smscard" style="background:#111;border-color:#001a33">
+      <div style="font-size:12px;font-weight:700;color:#007AFF;margin-bottom:10px">📩 Compose Real SMS</div>
+      <div class="sms-input-row" style="margin-bottom:8px">
+        <input class="smsinput" id="sms-compose-num" type="tel" placeholder="📱 Phone number (e.g. +919876543210)" style="background:#001a33;border-color:#002244">
+      </div>
+      <textarea id="sms-compose-msg" rows="4" class="smsinput" style="width:100%;resize:none;background:#001a33;border-color:#002244;font-size:12px;line-height:1.6;padding:12px">ZEROTOX ALERT: SO2 480ppm Zone C CRITICAL. AI scrubber ON. Stay indoors! Evacuate Zone C. -ZEROTOX AI</textarea>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button onclick="sendRealSMS()" style="flex:2;padding:13px;background:#007AFF;border:none;border-radius:10px;color:#fff;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px">📤 SEND SMS Now</button>
+        <button onclick="fillAlertMsg('sms','H₂S','42ppm','Zone E','DANGER')" style="flex:1;padding:13px;background:rgba(255,59,59,0.15);border:1px solid rgba(255,59,59,0.3);border-radius:10px;color:var(--red);font-size:12px;cursor:pointer;font-weight:600">🚨 H₂S Alert</button>
+        <button onclick="fillAlertMsg('sms','NO₂','178ppm','Zone D','WARNING')" style="flex:1;padding:13px;background:rgba(255,170,0,0.12);border:1px solid rgba(255,170,0,0.3);border-radius:10px;color:var(--warn);font-size:12px;cursor:pointer;font-weight:600">⚠️ NO₂ Alert</button>
+      </div>
+      <div style="font-size:10px;color:#3a6a4a;margin-top:8px;text-align:center">Opens your phone's Messages app with alert pre-filled ✓</div>
+    </div>
+
+    <!-- Twilio Auto-send -->
+    <div class="smscard" style="background:#0a0a1a;border-color:rgba(168,85,247,0.25)">
+      <div style="font-size:12px;font-weight:700;color:var(--purple);margin-bottom:4px">🔌 Twilio Auto-Send (Optional)</div>
+      <div style="font-size:11px;color:#4a7a5e;margin-bottom:12px">Enter your Twilio credentials to send SMS without opening the Messages app. Get free credits at twilio.com</div>
+      <input class="smsinput" id="tw-sid" placeholder="Twilio Account SID" style="margin-bottom:8px;font-size:12px">
+      <input class="smsinput" id="tw-token" type="password" placeholder="Twilio Auth Token" style="margin-bottom:8px;font-size:12px">
+      <input class="smsinput" id="tw-from" placeholder="Your Twilio number (e.g. +12025551234)" style="margin-bottom:10px;font-size:12px">
+      <button onclick="saveTwilioConfig()" style="width:100%;padding:12px;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.4);border-radius:10px;color:var(--purple);font-size:13px;font-weight:600;cursor:pointer;font-family:'Exo 2',sans-serif">💾 Save Twilio Config</button>
+      <div id="twilio-status" style="font-size:11px;color:#3a6a4a;text-align:center;margin-top:8px"></div>
+    </div>
+  </div>
+
+  <!-- ── CONTACTS PANEL ── -->
+  <div id="panel-contacts" style="display:none">
+    <div class="smscard">
+      <div class="sectitle">📞 Emergency Contacts</div>
+      <div style="font-size:11px;color:#4a7a5e;margin-bottom:14px">Save numbers — alerts auto-open WhatsApp or SMS to each contact on DANGER</div>
+      
+      <!-- Contact 1 -->
+      <div style="background:#071a0f;border:1px solid rgba(0,255,136,0.1);border-radius:10px;padding:12px;margin-bottom:10px">
+        <div style="font-size:11px;color:var(--g);font-weight:700;margin-bottom:8px">👤 Contact 1 — Primary</div>
+        <div class="sms-input-row" style="flex-wrap:wrap">
+          <input class="smsinput" id="contact-name-1" placeholder="Name (e.g. Akshara)" style="flex:1;min-width:100px;margin-bottom:6px">
+          <input class="smsinput" id="contact-num-1" type="tel" placeholder="+91 number" style="flex:1;min-width:130px;margin-bottom:6px">
+          <select class="smsinput" id="contact-type-1" style="flex:1;min-width:100px;margin-bottom:6px">
+            <option value="both">WA + SMS</option>
+            <option value="wa">WhatsApp only</option>
+            <option value="sms">SMS only</option>
+          </select>
+        </div>
+        <button onclick="saveContact(1)" class="smsbtn" style="width:100%">💾 Save Contact 1</button>
+      </div>
+      <!-- Contact 2 -->
+      <div style="background:#071a0f;border:1px solid rgba(0,255,136,0.1);border-radius:10px;padding:12px;margin-bottom:10px">
+        <div style="font-size:11px;color:var(--g);font-weight:700;margin-bottom:8px">👤 Contact 2 — Secondary</div>
+        <div class="sms-input-row" style="flex-wrap:wrap">
+          <input class="smsinput" id="contact-name-2" placeholder="Name (e.g. Shalini)" style="flex:1;min-width:100px;margin-bottom:6px">
+          <input class="smsinput" id="contact-num-2" type="tel" placeholder="+91 number" style="flex:1;min-width:130px;margin-bottom:6px">
+          <select class="smsinput" id="contact-type-2" style="flex:1;min-width:100px;margin-bottom:6px">
+            <option value="both">WA + SMS</option>
+            <option value="wa">WhatsApp only</option>
+            <option value="sms">SMS only</option>
+          </select>
+        </div>
+        <button onclick="saveContact(2)" class="smsbtn" style="width:100%">💾 Save Contact 2</button>
+      </div>
+      <!-- Contact 3 -->
+      <div style="background:#0a0a0a;border:1px solid rgba(255,59,59,0.2);border-radius:10px;padding:12px;margin-bottom:10px">
+        <div style="font-size:11px;color:var(--red);font-weight:700;margin-bottom:8px">🚨 Contact 3 — Authority / Police</div>
+        <div class="sms-input-row" style="flex-wrap:wrap">
+          <input class="smsinput" id="contact-name-3" placeholder="Authority name" style="flex:1;min-width:100px;margin-bottom:6px">
+          <input class="smsinput" id="contact-num-3" type="tel" placeholder="+91 number or 112" style="flex:1;min-width:130px;margin-bottom:6px">
+          <select class="smsinput" id="contact-type-3" style="flex:1;min-width:100px;margin-bottom:6px">
+            <option value="sms">SMS only</option>
+            <option value="both">WA + SMS</option>
+            <option value="wa">WhatsApp only</option>
+          </select>
+        </div>
+        <button onclick="saveContact(3)" class="smsbtn" style="width:100%">💾 Save Contact 3</button>
+      </div>
+      <!-- Contact 4 -->
+      <div style="background:#071a0f;border:1px solid rgba(0,255,136,0.1);border-radius:10px;padding:12px;margin-bottom:14px">
+        <div style="font-size:11px;color:var(--g);font-weight:700;margin-bottom:8px">👤 Contact 4 — Custom</div>
+        <div class="sms-input-row" style="flex-wrap:wrap">
+          <input class="smsinput" id="contact-name-4" placeholder="Name" style="flex:1;min-width:100px;margin-bottom:6px">
+          <input class="smsinput" id="contact-num-4" type="tel" placeholder="+91 number" style="flex:1;min-width:130px;margin-bottom:6px">
+          <select class="smsinput" id="contact-type-4" style="flex:1;min-width:100px;margin-bottom:6px">
+            <option value="both">WA + SMS</option>
+            <option value="wa">WhatsApp only</option>
+            <option value="sms">SMS only</option>
+          </select>
+        </div>
+        <button onclick="saveContact(4)" class="smsbtn" style="width:100%">💾 Save Contact 4</button>
+      </div>
+
+      <!-- Saved contacts display -->
+      <div class="sectitle">✅ Saved Contacts</div>
+      <div id="saved-contacts-display" style="font-size:12px;color:#4a7a5e">No contacts saved yet.</div>
+
+      <!-- Test all -->
+      <button onclick="testSendAll()" style="width:100%;padding:13px;margin-top:14px;background:linear-gradient(135deg,rgba(0,255,136,0.15),rgba(37,211,102,0.1));border:1px solid rgba(0,255,136,0.3);border-radius:10px;color:var(--g);font-family:'Orbitron',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px">📤 SEND TEST TO ALL CONTACTS</button>
+    </div>
+
+    <!-- Alert Settings -->
+    <div class="card">
+      <div class="sectitle">⚙️ Alert Settings</div>
+      <div class="setrow"><div><div class="setlbl">WhatsApp on DANGER</div><div class="setdesc">Opens WhatsApp when gas is critical</div></div><div class="tgl on" id="tgl-wa-danger" onclick="this.classList.toggle('on')"></div></div>
+      <div class="setrow"><div><div class="setlbl">SMS on DANGER</div><div class="setdesc">Opens SMS app on danger level</div></div><div class="tgl on" id="tgl-sms-danger" onclick="this.classList.toggle('on')"></div></div>
+      <div class="setrow"><div><div class="setlbl">Alert on WARNING</div><div class="setdesc">Also alert when gas is approaching limit</div></div><div class="tgl on" id="tgl-warn" onclick="this.classList.toggle('on')"></div></div>
+      <div class="setrow"><div><div class="setlbl">AI Prediction Alert</div><div class="setdesc">Early warning 10 min before danger</div></div><div class="tgl on" id="tgl-pred" onclick="this.classList.toggle('on')"></div></div>
+      <div class="setrow"><div><div class="setlbl">Include Zone Map Link</div><div class="setdesc">Add Google Maps link to alert message</div></div><div class="tgl on" id="tgl-map" onclick="this.classList.toggle('on')"></div></div>
+      <div class="setrow"><div><div class="setlbl">Daily Summary (6 PM)</div><div class="setdesc">Evening report to all contacts</div></div><div class="tgl" id="tgl-daily" onclick="this.classList.toggle('on')"></div></div>
+    </div>
+  </div>
+
+  <!-- ── LOG PANEL ── -->
+  <div id="panel-log" style="display:none">
+    <div class="smscard">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="sectitle" style="margin-bottom:0">📋 Alert Log</div>
+        <button onclick="clearLog()" style="padding:5px 12px;background:rgba(255,59,59,0.1);border:1px solid rgba(255,59,59,0.25);border-radius:8px;color:var(--red);font-size:11px;cursor:pointer">🗑 Clear</button>
+      </div>
+      <div class="sms-log" id="smsLog" style="max-height:400px">
+        <div class="sms-item"><span class="sms-time">10:32 AM</span><span>💬 WhatsApp opened: SO₂ 480ppm Zone C — CRITICAL</span></div>
+        <div class="sms-item"><span class="sms-time">10:15 AM</span><span>📩 SMS opened: H₂S 42ppm Zone E — DANGER</span></div>
+        <div class="sms-item"><span class="sms-time">09:48 AM</span><span>✅ All clear sent: Zone A AQI 42</span></div>
+      </div>
+    </div>
+    <div class="smscard">
+      <div class="sectitle">📊 Alert Stats</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center">
+        <div style="background:#071a0f;border:1px solid rgba(0,255,136,0.1);border-radius:10px;padding:12px"><div style="font-family:'Orbitron',monospace;font-size:20px;color:var(--g)" id="stat-wa-count">7</div><div style="font-size:10px;color:#3a6a4a">WhatsApp Sent</div></div>
+        <div style="background:#071a0f;border:1px solid rgba(0,207,255,0.1);border-radius:10px;padding:12px"><div style="font-family:'Orbitron',monospace;font-size:20px;color:var(--blue)" id="stat-sms-count">4</div><div style="font-size:10px;color:#3a6a4a">SMS Sent</div></div>
+        <div style="background:#0a0505;border:1px solid rgba(255,59,59,0.15);border-radius:10px;padding:12px"><div style="font-family:'Orbitron',monospace;font-size:20px;color:var(--red)" id="stat-critical-count">3</div><div style="font-size:10px;color:#3a6a4a">Critical Alerts</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: CHATBOT ══════════════ -->
+<div id="pg-chat" class="pg">
+  <div class="pgtitle">🤖 AI <em>Assistant</em></div>
+  <div class="pgsub">Ask anything about gases, alerts, safety steps, or the system</div>
+  <div class="chatbox">
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="chat-header-avatar">🌿</div>
+      <div class="chat-header-info">
+        <div class="chat-header-name">ZEROTOX AI ASSISTANT</div>
+        <div class="chat-header-status"><div class="chat-status-dot"></div>Online · Ready to help</div>
+      </div>
+      <button class="chat-clear-btn" onclick="clearChat()">🗑 Clear</button>
+    </div>
+    <!-- Messages -->
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg bot" id="welcomeMsg">
+        👋 Hello! I'm the <strong>ZEROTOX AI Assistant</strong>.<br><br>
+        I can help you with:<br>
+        🧪 Gas levels & chemical formulas<br>
+        🚨 Danger zones & alert status<br>
+        🌀 Ventilation & conversion methods<br>
+        📱 SMS alerts & emergency steps<br><br>
+        What would you like to know?
+        <div class="chat-msg-time" id="welcome-time"></div>
+      </div>
+    </div>
+    <!-- Category filter chips -->
+    <div class="chat-categories">
+      <div class="cat-chip active" onclick="setCategory('all',this)">🔍 All</div>
+      <div class="cat-chip" onclick="setCategory('gases',this)">🧪 Gases</div>
+      <div class="cat-chip" onclick="setCategory('safety',this)">🛡️ Safety</div>
+      <div class="cat-chip" onclick="setCategory('system',this)">⚙️ System</div>
+      <div class="cat-chip" onclick="setCategory('zones',this)">🗺️ Zones</div>
+      <div class="cat-chip" onclick="setCategory('tamil',this)">🇮🇳 தமிழ்</div>
+    </div>
+    <!-- Quick buttons (dynamic based on category) -->
+    <div class="chat-quickbtns" id="quickBtns"></div>
+    <!-- Input -->
+    <div class="chat-input-row">
+      <input class="chatinput" id="chatInput" placeholder="Ask about gases, safety, alerts..." onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="chatsendbtn" onclick="sendChat()">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: ALERTS ══════════════ -->
+<div id="pg-alerts" class="pg">
+  <div class="pgtitle">🚨 Alert <em>Center</em></div>
+  <div class="pgsub">Active alerts and AI-automated actions</div>
+  <div class="acard d">
+    <div class="ahead"><div class="aicon">☠️</div><div><div class="atitle">CRITICAL — SO₂ Overload · Zone C</div><div class="ameta">2 min ago · Sensor C-07</div></div></div>
+    <div class="abody">SO₂ reached 480 ppm — double the safe limit. Ventilation opened. Lime scrubber activated. SMS sent to all emergency contacts. Evacuation advisory issued.</div>
+    <div class="abtnrow">
+      <button class="abtn r" onclick="triggerAlarm('SO₂','480 ppm','Sulfur Dioxide')">🚨 Trigger Alarm</button>
+      <button class="abtn y" onclick="sendSMSAlert('SO₂','480ppm','Zone C')">📱 Send SMS</button>
+      <button class="abtn g" onclick="openVent()">🌀 Open Vent</button>
+    </div>
+  </div>
+  <div class="acard w">
+    <div class="ahead"><div class="aicon">⚠️</div><div><div class="atitle">WARNING — NO₂ Rising · Zone D</div><div class="ameta">15 min ago · Sensor D-12</div></div></div>
+    <div class="abody">NO₂ at 178 ppm. SCR system triggered. Traffic department alerted. AI predicts danger in 8 minutes if traffic continues.</div>
+    <div class="abtnrow">
+      <button class="abtn y" onclick="notify('🚗 Traffic rerouting request sent!','w')">🚗 Alert Traffic</button>
+      <button class="abtn b" onclick="sendSMSAlert('NO₂','178ppm','Zone D')">📱 Send SMS</button>
+    </div>
+  </div>
+  <div class="acard s">
+    <div class="ahead"><div class="aicon">✅</div><div><div class="atitle">RESOLVED — CO Normal · Zone A</div><div class="ameta">32 min ago</div></div></div>
+    <div class="abody">CO returned to 35 ppm. Catalytic converter successfully converted CO to CO₂. Zone A clear.</div>
+    <div class="abtnrow"><button class="abtn g" onclick="notify('📊 Recovery graph ready!','s')">📊 View Graph</button></div>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: SOLUTION ══════════════ -->
+<div id="pg-solution" class="pg">
+  <div class="pgtitle">🧪 Gas <em>Converter</em></div>
+  <div class="pgsub">Select a gas to see AI conversion formula and steps</div>
+  <div class="card">
+    <div class="sectitle">Select Toxic Gas</div>
+    <select class="selbox" onchange="showSol(this.value)">
+      <option value="">-- Choose a toxic gas --</option>
+      <option value="co">CO — Carbon Monoxide</option>
+      <option value="so2">SO₂ — Sulfur Dioxide</option>
+      <option value="no2">NO₂ — Nitrogen Dioxide</option>
+      <option value="nh3">NH₃ — Ammonia</option>
+      <option value="h2s">H₂S — Hydrogen Sulfide</option>
+      <option value="ch4">CH₄ — Methane</option>
+      <option value="voc">VOC — Volatile Organics</option>
+    </select>
+    <div class="solout" id="solout"></div>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: ANALYTICS ══════════════ -->
+<div id="pg-analytics" class="pg">
+  <div class="pgtitle">📊 <em>Analytics</em> & Reports</div>
+  <div class="pgsub">Gas trend charts, stats, and export reports</div>
+
+  <!-- Summary stats -->
+  <div class="analytics-grid">
+    <div class="stat-mini"><div class="val g" style="color:var(--g)">98.4%</div><div class="lbl">Conversion Rate</div></div>
+    <div class="stat-mini"><div class="val" style="color:var(--blue)">6</div><div class="lbl">Active Sensors</div></div>
+    <div class="stat-mini"><div class="val" style="color:var(--warn)">3</div><div class="lbl">Alerts Today</div></div>
+    <div class="stat-mini"><div class="val" style="color:var(--purple)">2.8t</div><div class="lbl">CO₂ Saved Today</div></div>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-container">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div style="font-family:'Orbitron',monospace;font-size:12px;color:var(--g);letter-spacing:1px">LIVE TREND CHART</div>
+      <div class="chart-tabs">
+        <button class="ctab on" onclick="switchChart('all',this)">All Gases</button>
+        <button class="ctab" onclick="switchChart('danger',this)">Danger Only</button>
+        <button class="ctab" onclick="switchChart('24h',this)">24H View</button>
+      </div>
+    </div>
+    <canvas id="gasChart" style="max-height:260px"></canvas>
+  </div>
+
+  <!-- AQI Donut Chart -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+    <div class="chart-container" style="padding:14px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--g);letter-spacing:1px;margin-bottom:10px">ZONE AQI</div>
+      <canvas id="zoneChart" style="max-height:160px"></canvas>
+    </div>
+    <div class="chart-container" style="padding:14px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--g);letter-spacing:1px;margin-bottom:10px">GAS BREAKDOWN</div>
+      <canvas id="pieChart" style="max-height:160px"></canvas>
+    </div>
+  </div>
+
+  <!-- Environment data -->
+  <div class="sectitle">🌤️ Environment Conditions</div>
+  <div class="env-grid">
+    <div class="env-box"><div class="env-icon">🌡️</div><div class="env-val" id="env-temp">28°C</div><div class="env-lbl">Temperature</div></div>
+    <div class="env-box"><div class="env-icon">💧</div><div class="env-val" id="env-hum">72%</div><div class="env-lbl">Humidity</div></div>
+    <div class="env-box"><div class="env-icon">💨</div><div class="env-val" id="env-wind">12km/h</div><div class="env-lbl">Wind Speed</div></div>
+    <div class="env-box"><div class="env-icon">🌪️</div><div class="env-val" id="env-press">1013 hPa</div><div class="env-lbl">Pressure</div></div>
+    <div class="env-box"><div class="env-icon">👁️</div><div class="env-val" id="env-vis">4.2 km</div><div class="env-lbl">Visibility</div></div>
+    <div class="env-box"><div class="env-icon">☀️</div><div class="env-val" id="env-uv">UV 6</div><div class="env-lbl">UV Index</div></div>
+  </div>
+
+  <!-- Export -->
+  <div class="sectitle">📤 Export Reports</div>
+  <div class="card">
+    <div style="font-size:12px;color:#4a7a5e;margin-bottom:12px">Download gas readings, alert logs, and analysis reports</div>
+    <div class="export-row">
+      <button class="expbtn csv" onclick="exportCSV()">📊 Export CSV</button>
+      <button class="expbtn pdf" onclick="exportReport()">📄 Download Report</button>
+      <button class="expbtn img" onclick="exportSummary()">🖼️ Summary Card</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: SETTINGS (ENHANCED) ══════════════ -->
+<div id="pg-settings" class="pg">
+  <div class="pgtitle">⚙️ <em>Settings</em></div>
+  <div class="pgsub">Customize ZEROTOX ECOSHIELD</div>
+
+  <!-- Profile Card -->
+  <div class="profile-card" id="profileCard">
+    <div class="profile-avatar">👤</div>
+    <div>
+      <div class="profile-name" id="profile-name">Admin</div>
+      <div class="profile-role" id="profile-role">🛡️ System Administrator</div>
+      <div class="profile-since">Member since March 2025 • v5.0</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sectitle">Language / மொழி</div>
+    <div class="setrow">
+      <div><div class="setlbl">App Language</div><div class="setdesc">English / தமிழ்</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="langbtn on" id="set-lang-en" onclick="setLang('en');updateLangBtns()">English</button>
+        <button class="langbtn" id="set-lang-ta" onclick="setLang('ta');updateLangBtns()">தமிழ்</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sectitle">⚠️ Gas Alert Thresholds</div>
+    <div style="font-size:11px;color:#3a6a4a;margin-bottom:12px">Adjust when alarms trigger for each gas</div>
+    <div class="threshold-row">
+      <div class="thr-gas" style="color:var(--red)">SO₂</div>
+      <input type="range" class="thr-slider" min="50" max="500" value="200" oninput="document.getElementById('thr-so2').textContent=this.value+' ppm'">
+      <div class="thr-val" id="thr-so2">200 ppm</div>
+    </div>
+    <div class="threshold-row">
+      <div class="thr-gas" style="color:var(--warn)">NO₂</div>
+      <input type="range" class="thr-slider" min="50" max="400" value="200" oninput="document.getElementById('thr-no2').textContent=this.value+' ppm'">
+      <div class="thr-val" id="thr-no2">200 ppm</div>
+    </div>
+    <div class="threshold-row">
+      <div class="thr-gas" style="color:var(--red)">H₂S</div>
+      <input type="range" class="thr-slider" min="5" max="100" value="20" oninput="document.getElementById('thr-h2s').textContent=this.value+' ppm'">
+      <div class="thr-val" id="thr-h2s">20 ppm</div>
+    </div>
+    <div class="threshold-row">
+      <div class="thr-gas" style="color:var(--blue)">CO</div>
+      <input type="range" class="thr-slider" min="50" max="400" value="200" oninput="document.getElementById('thr-co').textContent=this.value+' ppm'">
+      <div class="thr-val" id="thr-co">200 ppm</div>
+    </div>
+    <div class="threshold-row">
+      <div class="thr-gas" style="color:var(--t)">NH₃</div>
+      <input type="range" class="thr-slider" min="25" max="200" value="100" oninput="document.getElementById('thr-nh3').textContent=this.value+' ppm'">
+      <div class="thr-val" id="thr-nh3">100 ppm</div>
+    </div>
+    <button class="abtn g" style="width:100%;padding:11px;font-size:13px;margin-top:10px" onclick="notify('✅ Thresholds saved!','s')">💾 Save Thresholds</button>
+  </div>
+
+  <div class="card">
+    <div class="sectitle">Alarm & Alerts</div>
+    <div class="setrow"><div><div class="setlbl">Sound Alarm on Danger</div><div class="setdesc">Big alarm with sound when gas is critical</div></div><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+    <div class="setrow"><div><div class="setlbl">SMS Auto-Send</div><div class="setdesc">Auto SMS to saved numbers on danger</div></div><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+    <div class="setrow"><div><div class="setlbl">10-Min Prediction Alert</div><div class="setdesc">Warn before gas reaches danger level</div></div><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+    <div class="setrow"><div><div class="setlbl">Auto Ventilation</div><div class="setdesc">Open vents automatically on prediction</div></div><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+    <div class="setrow"><div><div class="setlbl">Vibration Alerts</div><div class="setdesc">Phone vibrate on danger detection</div></div><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+  </div>
+
+  <div class="card">
+    <div class="sectitle">App Info</div>
+    <div class="setrow"><div class="setlbl">Version</div><div class="mono" style="color:var(--g);font-size:12px">v8.0 — Real Alerts 🟢</div></div>
+    <div class="setrow"><div class="setlbl">AI System</div><div style="color:var(--g);font-size:12px">ZEROTOX Smart Assistant ✅</div></div>
+    <div class="setrow"><div class="setlbl">Works Offline</div><div style="color:var(--g)">✅ Yes — Forever</div></div>
+    <div class="setrow"><div class="setlbl">Team</div><div style="color:#cde8d8;font-size:12px">Akshara · Shalini · Yuvaraju</div></div>
+    <div class="setrow"><div class="setlbl">Data Refresh</div><div style="color:#cde8d8;font-size:12px">Every 3 seconds</div></div>
+  </div>
+</div>
+
+<!-- ══════════════ BOTTOM NAV ══════════════ -->
+<nav class="botnav">
+  <button class="bnbtn on" id="bn-home"      onclick="goTo('home')">     <div class="ico">🏠</div><span id="bn-lbl-home">Home</span></button>
+  <button class="bnbtn"    id="bn-monitor"   onclick="goTo('monitor')">  <div class="ico">📡</div><span id="bn-lbl-monitor">Monitor</span></button>
+  <button class="bnbtn"    id="bn-analytics" onclick="goTo('analytics')"><div class="ico">📊</div><span>Analytics</span></button>
+  <button class="bnbtn"    id="bn-map"       onclick="goTo('map')">      <div class="ico">🗺️</div><span id="bn-lbl-map">Map</span></button>
+  <button class="bnbtn"    id="bn-showcase"  onclick="goTo('showcase')"> <div class="ico">☠️</div><span id="bn-lbl-showcase">Gases</span></button>
+  <button class="bnbtn"    id="bn-sms"       onclick="goTo('sms')">      <div class="ico">📱</div><span id="bn-lbl-sms">SMS</span></button>
+  <button class="bnbtn"    id="bn-chat"      onclick="goTo('chat')">     <div class="ico">🤖</div><span id="bn-lbl-chat">AI Chat</span></button>
+  <button class="bnbtn"    id="bn-settings"  onclick="goTo('settings')"> <div class="ico">⚙️</div><span id="bn-lbl-settings">Settings</span></button>
+</nav>
+
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
